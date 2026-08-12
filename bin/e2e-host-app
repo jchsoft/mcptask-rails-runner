@@ -1,0 +1,108 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# End-to-end check of the wrapper inside a real Rails application: generates a
+# throwaway app, points it at this checkout, and verifies that the rake surface
+# is complete and that every task reaches the binary with the right argv, in the
+# host app's working directory, propagating its exit code.
+#
+# Needs the `rails` gem and network access for `bundle install`.
+# Usage: bin/e2e-host-app [workdir]
+
+require "fileutils"
+require "open3"
+require "tmpdir"
+
+GEM_DIR = File.expand_path("..", __dir__)
+STUB_EXIT = 42
+
+failures = []
+
+def check(label)
+  ok, detail = yield
+  puts "#{ok ? '  ok  ' : ' FAIL '} #{label}#{detail ? " — #{detail}" : ''}"
+  ok
+end
+
+def run(*cmd, chdir:, env: {})
+  Open3.capture2e(env, *cmd, chdir: chdir)
+end
+
+workdir = ARGV[0] || Dir.mktmpdir("mcptask-e2e-")
+FileUtils.mkdir_p(workdir)
+app = File.join(workdir, "host_app")
+stub = File.join(workdir, "stub_binary")
+
+File.write(stub, "#!/bin/sh\necho \"ARGV: $*\"\necho \"CWD: $(pwd)\"\nexit #{STUB_EXIT}\n")
+FileUtils.chmod(0o755, stub)
+
+puts "e2e workdir: #{workdir}"
+
+unless File.directory?(app)
+  puts "generating Rails app..."
+  out, status = run("rails", "new", "host_app", "--minimal", "--skip-bundle",
+                    "--skip-git", "--skip-test", "--skip-keeps", chdir: workdir)
+  abort "rails new failed:\n#{out}" unless status.success?
+end
+
+File.write(File.join(app, "Gemfile"), "\ngem \"mcptask-rails-runner\", path: #{GEM_DIR.inspect}\n", mode: "a")
+puts "bundle install..."
+out, status = run("bundle", "install", chdir: app)
+abort "bundle install failed:\n#{out}" unless status.success?
+
+EXPECTED_TASKS = %w[
+  mcptask_runner:install mcptask_runner:update mcptask_runner:bug_report mcptask_runner:version
+  mcptask_runner:manual:once mcptask_runner:manual:once_dry mcptask_runner:manual:today
+  mcptask_runner:manual:daily mcptask_runner:manual:review mcptask_runner:manual:reviews
+  mcptask_runner:manual:workflow mcptask_runner:manual:queue
+  mcptask_runner:manual:story mcptask_runner:manual:task
+  mcptask_runner:auto:once mcptask_runner:auto:squash:today mcptask_runner:auto:squash:queue
+  mcptask_runner:auto:squash:story mcptask_runner:auto:squash:task
+].freeze
+
+listing, = run("bundle", "exec", "rake", "-T", "mcptask", chdir: app)
+missing = EXPECTED_TASKS.reject { |t| listing.include?(t) }
+failures << "missing rake tasks: #{missing.join(', ')}" unless
+  check("all #{EXPECTED_TASKS.size} legacy rake tasks are exposed") { [missing.empty?, missing.first] }
+
+{
+  "mcptask_runner:install" => "init",
+  "mcptask_runner:manual:once" => "run once",
+  "mcptask_runner:manual:queue" => "run queue_manual",
+  "mcptask_runner:manual:story[123]" => "run story_manual --story-id 123",
+  "mcptask_runner:auto:squash:task[7]" => "run task_auto_squash --task-id 7"
+}.each do |task, argv|
+  out, status = run("bundle", "exec", "rake", task, chdir: app, env: { "MCPTASK_RUNNER_BIN" => stub })
+
+  failures << "#{task}: wrong argv" unless
+    check("#{task} → #{argv}") { [out.include?("ARGV: #{argv}"), out.lines.first&.strip] }
+  failures << "#{task}: wrong cwd" unless
+    check("#{task} runs in the host app directory") { [out.include?("CWD: #{app}"), nil] }
+  failures << "#{task}: exit code #{status.exitstatus}" unless
+    check("#{task} propagates exit code #{STUB_EXIT}") { [status.exitstatus == STUB_EXIT, status.to_s] }
+end
+
+out, status = run("bundle", "exec", "rake", "mcptask_runner:manual:story", chdir: app,
+                  env: { "MCPTASK_RUNNER_BIN" => stub })
+failures << "missing story_id was not rejected" unless
+  check("manual:story without an id fails before reaching the binary") do
+    [!status.success? && out.include?("story_id is required") && !out.include?("ARGV:"), nil]
+  end
+
+bundled = File.join(GEM_DIR, "libexec", "mcptask_runner")
+if File.file?(bundled)
+  out, status = run("bundle", "exec", "rake", "mcptask_runner:version", chdir: app)
+  failures << "real binary run failed: #{out}" unless
+    check("real bundled binary runs and exits 0") { [status.success? && out.include?("Version:"), out.lines.first&.strip] }
+else
+  puts "  skip  real binary run — no #{bundled} staged (run bin/fetch-binaries + copy)"
+end
+
+puts
+if failures.empty?
+  puts "e2e OK"
+else
+  puts "e2e FAILED:"
+  failures.each { |f| puts "  - #{f}" }
+  exit 1
+end

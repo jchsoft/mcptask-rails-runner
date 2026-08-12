@@ -18,11 +18,12 @@ Gem::Specification.new do |spec|
 
   spec.metadata["source_code_uri"] = spec.homepage
   spec.metadata["bug_tracker_uri"] = "#{spec.homepage}/issues"
+  spec.metadata["changelog_uri"] = "#{spec.homepage}/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mfa_required"] = "true"
 
-  # Explicit whitelist — nothing outside lib/, the license and the README may
+  # Explicit whitelist — nothing outside lib/ and these three documents may
   # ever ship. Platform builds (Rakefile) append exactly one libexec binary.
-  spec.files = Dir["lib/**/*.rb", "lib/tasks/*.rake"] + %w[LICENSE README.md]
+  spec.files = Dir["lib/**/*.rb", "lib/tasks/*.rake"] + %w[LICENSE README.md CHANGELOG.md]
   spec.require_paths = ["lib"]
 
   spec.add_dependency "railties", ">= 6.0"

@@ -90,6 +90,20 @@ the Release workflow downloads the binaries (sha256-verified), builds the
 platform gems and publishes them to rubygems.org through OIDC trusted
 publishing. See `.github/workflows/release.yml`.
 
+One-time setup on rubygems.org, before the first tag can publish anything —
+the gem name has to exist as a trusted-publisher entry:
+
+1. Sign in on rubygems.org, open **Profile → Trusted publishers → Create**.
+2. For a gem that has never been pushed, use **Create a pending trusted
+   publisher** with gem name `mcptask-rails-runner`; for an existing gem, add
+   the publisher on the gem's own page.
+3. Repository owner `jchsoft`, repository name `mcptask-rails-runner`,
+   workflow filename `release.yml`, environment empty.
+
+No API key is stored anywhere: `rubygems/configure-rubygems-credentials`
+exchanges the workflow's OIDC token for a short-lived credential at push time.
+The same model as the npm publish in the Go repository.
+
 ## License
 
 MIT

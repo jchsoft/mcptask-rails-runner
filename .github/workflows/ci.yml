@@ -28,6 +28,23 @@ jobs:
           bundler-cache: true
       - run: bundle exec rake test
 
+  e2e:
+    name: e2e in a generated Rails app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: gem install rails --no-document
+      - name: Stage the linux binary matching the gem version
+        run: |
+          bin/fetch-binaries
+          cp tmp/binaries/linux_amd64/mcptask_runner libexec/mcptask_runner
+          chmod +x libexec/mcptask_runner
+      - run: bin/e2e-host-app
+
   package:
     name: package smoke (ruby fallback gem)
     runs-on: ubuntu-latest
