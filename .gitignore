@@ -1,7 +1,9 @@
 /pkg/
 /tmp/
-/libexec/mcptask_runner
-/libexec/mcptask_runner.exe
+# The directory itself is tracked (see libexec/.gitkeep) — a fresh clone has to
+# have somewhere to stage a binary — but no binary may ever be committed.
+/libexec/*
+!/libexec/.gitkeep
 /Gemfile.lock
 /.bundle/
 *.gem
