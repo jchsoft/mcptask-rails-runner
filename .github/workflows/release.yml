@@ -1,0 +1,50 @@
+# Publishes the platform gems to rubygems.org through OIDC trusted publishing —
+# no API key stored anywhere. Prerequisite (one-time, on rubygems.org): the gem
+# mcptask-rails-runner must have a trusted publisher configured for this
+# repository and this workflow file.
+#
+# Release procedure:
+#   1. Make sure jchsoft/mcptask-releases has the tag v<VERSION> (goreleaser).
+#   2. Bump lib/mcptask_rails_runner/version.rb to <VERSION>, commit, push.
+#   3. git tag v<VERSION> && git push origin v<VERSION>
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # mandatory for rubygems trusted publishing
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Tag must match the gem version
+        run: |
+          ruby -r./lib/mcptask_rails_runner/version -e '
+            tag = ENV.fetch("GITHUB_REF_NAME")
+            abort "tag #{tag} does not match gem version v#{McptaskRailsRunner::VERSION}" \
+              unless tag == "v#{McptaskRailsRunner::VERSION}"'
+
+      - name: Fetch Go binaries from mcptask-releases (sha256-verified)
+        run: bin/fetch-binaries
+
+      - name: Build all platform gems
+        run: bundle exec rake package:all
+
+      - uses: rubygems/configure-rubygems-credentials@main
+
+      - name: Push every gem
+        run: |
+          for gem in pkg/*.gem; do
+            gem push "$gem"
+          done

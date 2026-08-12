@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ["3.0", "3.4"]
+        exclude:
+          # setup-ruby has no arm64 3.0 build for current macOS runners
+          - os: macos-latest
+            ruby: "3.0"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: bundle exec rake test
+
+  package:
+    name: package smoke (ruby fallback gem)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - run: bundle exec rake package:ruby
+      - run: gem install pkg/*.gem
+      - name: bundled require works and error message is instructive
+        run: |
+          ruby -e 'require "mcptask/rails/runner"
+                   begin
+                     McptaskRailsRunner::Binary.path
+                     abort "expected an error from the binary-less fallback gem"
+                   rescue McptaskRailsRunner::Error => e
+                     raise unless e.message.include?("MCPTASK_RUNNER_BIN")
+                     puts "fallback gem raises instructive error - OK"
+                   end'

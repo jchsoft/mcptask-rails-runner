@@ -1,0 +1,7 @@
+/pkg/
+/tmp/
+/libexec/mcptask_runner
+/libexec/mcptask_runner.exe
+/Gemfile.lock
+/.bundle/
+*.gem

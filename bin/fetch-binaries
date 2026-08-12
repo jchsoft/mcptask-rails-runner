@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Downloads the mcptask_runner release archives matching the gem version from
+# jchsoft/mcptask-releases, verifies each against checksums.txt and stages the
+# binaries under tmp/binaries/<goos>_<goarch>/ for `rake package:all`.
+#
+# Usage: bin/fetch-binaries [version]   (defaults to McptaskRailsRunner::VERSION)
+
+require "open-uri"
+require "digest"
+require "fileutils"
+require_relative "../lib/mcptask_rails_runner/version"
+
+version = ARGV.fetch(0, McptaskRailsRunner::VERSION).delete_prefix("v")
+repo = ENV.fetch("MCPTASK_RELEASE_REPO", "jchsoft/mcptask-releases")
+base = "https://github.com/#{repo}/releases/download/v#{version}"
+
+TARGETS = [
+  %w[darwin arm64 tar.gz],
+  %w[darwin amd64 tar.gz],
+  %w[linux arm64 tar.gz],
+  %w[linux amd64 tar.gz],
+  %w[windows amd64 zip]
+].freeze
+
+def fetch(url)
+  URI.parse(url).open("rb", &:read) # OpenURI follows GitHub's redirect to the CDN
+rescue OpenURI::HTTPError => e
+  abort "download failed: #{url} (#{e.message})"
+end
+
+puts "fetching v#{version} artifacts from #{repo}"
+checksums = fetch("#{base}/checksums.txt").lines.to_h { |l| l.split.reverse.first(2) }
+
+TARGETS.each do |goos, goarch, ext|
+  archive = "mcptask_runner_#{version}_#{goos}_#{goarch}.#{ext}"
+  data = fetch("#{base}/#{archive}")
+
+  expected = checksums.fetch(archive) { abort "#{archive} missing from checksums.txt" }
+  actual = Digest::SHA256.hexdigest(data)
+  abort "checksum mismatch for #{archive}: expected #{expected}, got #{actual}" unless actual == expected
+
+  dir = File.join("tmp/binaries", "#{goos}_#{goarch}")
+  FileUtils.rm_rf(dir)
+  FileUtils.mkdir_p(dir)
+  archive_path = File.join(dir, archive)
+  File.binwrite(archive_path, data)
+
+  ok = if ext == "zip"
+         system("unzip", "-oq", archive_path, "-d", dir)
+       else
+         system("tar", "-xzf", archive_path, "-C", dir)
+       end
+  abort "extraction failed for #{archive}" unless ok
+  FileUtils.rm_f(archive_path)
+
+  exe = goos == "windows" ? "mcptask_runner.exe" : "mcptask_runner"
+  abort "#{exe} not found inside #{archive}" unless File.file?(File.join(dir, exe))
+  puts "  staged #{dir}/#{exe} (sha256 ok)"
+end
+
+puts "done — run `rake package:all`"
