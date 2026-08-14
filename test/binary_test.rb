@@ -42,6 +42,32 @@ class BinaryTest < Minitest::Test
     assert File.file?(File.join(McptaskRailsRunner::Binary::GEM_ROOT, "mcptask-rails-runner.gemspec"))
   end
 
+  # Every platform gem has to be named something a host actually resolves.
+  # `arm64-linux` is not: RubyGems calls that architecture aarch64, the two do
+  # not match, and every Graviton server, ARM CI runner and Docker container on
+  # Apple Silicon quietly resolved the binary-less fallback gem and failed at
+  # run time with "mcptask_runner binary not found".
+  #
+  # The -gnu and -musl entries are the second half of it: a platform gem has to
+  # match both libc flavours, which is why `x86_64-linux` was fine all along.
+  HOSTS = {
+    "arm64-darwin" => %w[arm64-darwin-23 arm64-darwin-24],
+    "x86_64-darwin" => %w[x86_64-darwin-22],
+    "aarch64-linux" => %w[aarch64-linux-gnu aarch64-linux-musl],
+    "x86_64-linux" => %w[x86_64-linux-gnu x86_64-linux-musl]
+  }.freeze
+
+  def test_platform_gems_are_named_what_their_hosts_resolve
+    HOSTS.each do |platform, hosts|
+      assert_includes McptaskRailsRunner::Binary::SUPPORTED_PLATFORMS, platform
+
+      hosts.each do |host|
+        assert Gem::Platform.new(platform) =~ Gem::Platform.new(host),
+               "a #{host} host does not resolve the #{platform} gem"
+      end
+    end
+  end
+
   # --- installing the binary outside the gem ---
   #
   # The scheduled job runs whatever binary generated it, and a job pointing into

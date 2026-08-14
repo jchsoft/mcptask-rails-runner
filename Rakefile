@@ -17,7 +17,10 @@ task default: :test
 PLATFORM_BINARIES = {
   "arm64-darwin" => "darwin_arm64",
   "x86_64-darwin" => "darwin_amd64",
-  "arm64-linux" => "linux_arm64",
+  # aarch64-linux, not arm64-linux: the latter is not a platform any host
+  # resolves, so its gem is published and unreachable. The staged directory
+  # keeps the Go toolchain's own name for the architecture.
+  "aarch64-linux" => "linux_arm64",
   "x86_64-linux" => "linux_amd64",
   "x64-mingw-ucrt" => "windows_amd64"
 }.freeze

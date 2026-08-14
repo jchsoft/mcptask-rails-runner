@@ -84,7 +84,7 @@ the binary itself, exactly as before.
 
 ## Supported platforms
 
-Platform gems exist for `arm64-darwin`, `x86_64-darwin`, `arm64-linux`,
+Platform gems exist for `arm64-darwin`, `x86_64-darwin`, `aarch64-linux`,
 `x86_64-linux` and `x64-mingw-ucrt`. On anything else bundler falls back to
 the binary-less `ruby` platform gem, which fails at run time with
 instructions: install the binary from
