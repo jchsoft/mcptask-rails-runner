@@ -12,13 +12,18 @@ class RakeTasksTest < Minitest::Test
     load RAKE_FILE
 
     @calls = []
+    @installed_calls = []
     calls = @calls
+    installed_calls = @installed_calls
     @original = McptaskRailsRunner::Binary.method(:exec!)
+    @original_installed = McptaskRailsRunner::Binary.method(:exec_installed!)
     McptaskRailsRunner::Binary.define_singleton_method(:exec!) { |*args| calls << args }
+    McptaskRailsRunner::Binary.define_singleton_method(:exec_installed!) { |*args| installed_calls << args }
   end
 
   def teardown
     McptaskRailsRunner::Binary.define_singleton_method(:exec!, @original)
+    McptaskRailsRunner::Binary.define_singleton_method(:exec_installed!, @original_installed)
   end
 
   def invoke(name, *args)
@@ -27,8 +32,6 @@ class RakeTasksTest < Minitest::Test
   end
 
   DELEGATIONS = {
-    "mcptask_runner:install" => %w[init],
-    "mcptask_runner:update" => %w[update],
     "mcptask_runner:bug_report" => %w[bug-report],
     "mcptask_runner:version" => %w[version],
     "mcptask_runner:manual:once" => %w[run once],
@@ -47,6 +50,23 @@ class RakeTasksTest < Minitest::Test
   DELEGATIONS.each do |task_name, argv|
     define_method("test_#{task_name.tr(':', '_')}_delegates") do
       assert_equal argv, invoke(task_name)
+    end
+  end
+
+  # install and update are the two tasks that generate the scheduled job, and
+  # the job runs whichever binary generated it. Running the copy inside the gem
+  # would point it at a directory the next `bundle update` deletes.
+  INSTALLING_DELEGATIONS = {
+    "mcptask_runner:install" => %w[init],
+    "mcptask_runner:update" => %w[update]
+  }.freeze
+
+  INSTALLING_DELEGATIONS.each do |task_name, argv|
+    define_method("test_#{task_name.tr(':', '_')}_runs_the_installed_binary") do
+      @rake[task_name].invoke
+
+      assert_equal argv, @installed_calls.last
+      assert_empty @calls, "#{task_name} ran the binary inside the gem"
     end
   end
 

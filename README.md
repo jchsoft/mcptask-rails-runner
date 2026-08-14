@@ -9,6 +9,16 @@ One gem version carries exactly one binary version — `mcptask-rails-runner
 X.Y.Z` contains the binary from the `vX.Y.Z` release of
 [jchsoft/mcptask-releases](https://github.com/jchsoft/mcptask-releases).
 
+`mcptask_runner:install` and `:update` copy that binary out of the gem to
+`~/.mcptask/bin/mcptask_runner` and run it from there. The scheduled job runs
+that copy, because a job pointing inside a gem directory dies at the next
+`bundle update` — at 08:00, in a log nobody reads. So the pin is per project:
+the Gemfile decides what a foreground `rake mcptask_runner:*` runs, while the
+machine has one installed binary however many projects it carries, and the
+newest version any of them offers is the one that stays. Install and update
+print which version they wrote, and never replace a newer installed binary
+with an older one.
+
 ## Requirements
 
 - Ruby >= 3.0, Rails >= 6.0
@@ -36,8 +46,21 @@ The rake surface is identical — the migration is one Gemfile line:
 + gem "mcptask-rails-runner"
 ```
 
-Then `bundle install` and carry on; every `rake mcptask_runner:*` invocation,
-LaunchAgent and shell alias keeps working. Your existing
+Then:
+
+```bash
+bundle install
+FORCE=1 bundle exec rake mcptask_runner:install
+```
+
+Re-running install is what regenerates the scheduled job. The legacy launcher
+runs `bundle exec rake` and logs the active version by grepping `Gemfile.lock`
+for the old gem name — neither survives the rename, so a job left as it is
+keeps working but stops recording what it ran. The regenerated one execs
+`~/.mcptask/bin/mcptask_runner` directly, with no bundler in the 08:00 path.
+
+Every `rake mcptask_runner:*` invocation and shell alias keeps working
+unchanged. Your existing
 `config/mcptask_runner.yml`, `.mcp.json` and `.claude/` setup are read by the
 Go binary as-is. The only legacy task without a counterpart is
 `mcptask_runner:prepare:permissions` — permission sync is part of
@@ -47,8 +70,8 @@ Go binary as-is. The only legacy task without a counterpart is
 
 | Task | Delegates to |
 |---|---|
-| `mcptask_runner:install` | `mcptask_runner init` |
-| `mcptask_runner:update` | `mcptask_runner update` |
+| `mcptask_runner:install` | `mcptask_runner init` (from `~/.mcptask/bin`) |
+| `mcptask_runner:update` | `mcptask_runner update` (from `~/.mcptask/bin`) |
 | `mcptask_runner:bug_report` | `mcptask_runner bug-report` |
 | `mcptask_runner:version` | `mcptask_runner version` |
 | `mcptask_runner:manual:once` (`once_dry`, `today`, `daily`, `review`, `reviews`, `workflow`, `queue`) | `mcptask_runner run <mode>` |
@@ -69,9 +92,11 @@ instructions: install the binary from
 `install.sh` / npm `@mcptask/cli`) and point `MCPTASK_RUNNER_BIN` at it. The
 same variable also serves offline or air-gapped installs.
 
-The wrapper always executes the binary through an absolute path inside the
-gem, never through PATH — the binary shares its name with the legacy tooling,
-and a PATH lookup could pick up the wrong install.
+The wrapper always executes the binary through an absolute path — inside the
+gem for the run tasks, `~/.mcptask/bin` for install and update — and never
+through PATH: the binary shares its name with the legacy tooling, and a PATH
+lookup could pick up the wrong install. `MCPTASK_RUNNER_BIN` overrides both,
+and install leaves `~/.mcptask/bin` untouched while it is set.
 
 ## Development
 

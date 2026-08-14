@@ -4,18 +4,25 @@
 # a customer is only a Gemfile line swap. Every task delegates 1:1 to the
 # bundled Go CLI via Kernel#exec — the binary's exit code and signal handling
 # reach the caller unchanged, and nothing runs after the delegation line.
+#
+# Two of them delegate to the installed copy instead of the bundled one. install
+# and update are the tasks that generate the scheduled job, and the job runs
+# whichever binary generated it: pointing it inside this gem would have it die
+# at the next `bundle update`, which deletes that directory. Everything else
+# runs the binary the Gemfile pins, which is what a foreground rake invocation
+# should do.
 
 require "mcptask_rails_runner"
 
 namespace :mcptask_runner do
   desc "Install skills, permissions, token and scheduled job into this project"
   task :install do
-    McptaskRailsRunner::Binary.exec!("init")
+    McptaskRailsRunner::Binary.exec_installed!("init")
   end
 
   desc "Refresh bundled skills and helpers"
   task :update do
-    McptaskRailsRunner::Binary.exec!("update")
+    McptaskRailsRunner::Binary.exec_installed!("update")
   end
 
   desc "File a bug against the project with the last run log attached"
