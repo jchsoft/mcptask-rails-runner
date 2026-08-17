@@ -38,9 +38,22 @@ jobs:
           ruby-version: "3.4"
           bundler-cache: true
       - run: gem install rails --no-document
-      - name: Stage the linux binary matching the gem version
+      # The latest released binary, not the one this gem's version names.
+      #
+      # version.rb is bumped in the commit that prepares a release, and the
+      # matching binary tag is pushed after it — so between those two moments
+      # `bin/fetch-binaries` with no argument 404s and main goes red for a
+      # reason that is not a defect. This job proves the wrapper works in a real
+      # Rails app, and any released binary proves that. The exact-version match
+      # belongs to release.yml, which refuses a tag that disagrees with
+      # version.rb and then fetches that exact release.
+      - name: Stage the latest released linux binary
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          bin/fetch-binaries
+          released=$(gh release view --repo jchsoft/mcptask-releases --json tagName --jq .tagName)
+          echo "gem version is v$(ruby -r./lib/mcptask_rails_runner/version -e 'print McptaskRailsRunner::VERSION'), staging $released"
+          bin/fetch-binaries "$released"
           cp tmp/binaries/linux_amd64/mcptask_runner libexec/mcptask_runner
           chmod +x libexec/mcptask_runner
       - run: bin/e2e-host-app
