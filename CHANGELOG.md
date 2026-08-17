@@ -5,6 +5,31 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.3
+
+- The bundled skills now ask for the model the host actually has. Eight of them
+  — `ci-start`, `ci-wait`, `test-start`, `test-wait`, `wait-unlock`, `discover`,
+  `memory-search`, `mcptask-read` — ship declaring `model: haiku`, and on a
+  project whose `models:` are pinned away from Anthropic that alias is not
+  redirected by `ANTHROPIC_DEFAULT_HAIKU_MODEL`: the coding CLI resolves a
+  skill's own `model:` against its built-in table, asks for
+  `claude-haiku-4-5-20251001`, and gets a 404. The skill then hands the error
+  text back **as its result**, which the agent above reads as the skill's answer
+  and works on regardless. One host had been running that way for as long as its
+  models had been pinned — no CI started, no tests run, nothing discovered — with
+  every run reporting success. `install` and `update` now rewrite that line to
+  the pinned `primitive`, and say which model the forks will use.
+- The scheduled job's time is asked for instead of being 08:00 and unspoken.
+  `--at HH:MM` or `MCPTASK_RUN_AT` answers it without a terminal; a value that is
+  not a time of day is refused rather than rounded down to the default. The time
+  is printed either way — it used to live in the generated file and nowhere else.
+- The install says how to run the job once by hand, so the first evidence that a
+  host works does not have to arrive the next weekday morning.
+- On macOS a re-install boots the old job out by service target
+  (`gui/$(id -u)/<label>`) rather than by plist path. The path form answers
+  `Boot-out failed: 5: Input/output error` where the target form answers
+  `3: No such process`, and only one of those can be acted on.
+
 ## 0.3.2
 
 - A token `mcptask_runner:install` provisions now reaches the scheduled job it
