@@ -5,6 +5,18 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.1
+
+- `mcptask_runner:install` no longer asks for mcptask.online credentials on a
+  host whose token already resolves — from `.mcp.json` or the environment. It
+  says which one it found and where, and leaves it alone; set `MCPTASK_EMAIL`
+  and `MCPTASK_PASSWORD` to replace it deliberately. Where there really is no
+  token, the step now says whose account it wants, that the password is
+  exchanged once and never stored, which file the token lands in, and that the
+  runner will not start without one.
+- The release workflow waits for the Go binaries instead of failing when the two
+  tags are pushed minutes apart.
+
 ## 0.3.0
 
 - The Go runner is the runner: this gem is the Rails distribution, and the
