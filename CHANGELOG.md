@@ -5,6 +5,23 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.2
+
+- A token `mcptask_runner:install` provisions now reaches the scheduled job it
+  generates in the same run. It did not: the token was written to a shell export
+  file that only the next login shell reads — and launchd reads none — so the job
+  got `SET_MCPTASK_TOKEN_HERE` and refused to start at 08:00, even after
+  re-running with `FORCE=1`. That took two installs and a new terminal in
+  between, and nothing said so.
+- A job written with a placeholder now says it **will not start**, and names both
+  ways to fix it. The old wording read as a note and went unnoticed.
+- Re-installing prints how to *reload* the job rather than how to activate it:
+  launchd and systemd hold their own copy of a loaded job, so rewriting the file
+  changes nothing — including the token — until it is reloaded.
+- The install says where the run log is and how to follow it, how to stop a run
+  that is going on, and how to switch the job off. On Windows the activation
+  command gained `/F`, without which a re-install printed a command that fails.
+
 ## 0.3.1
 
 - `mcptask_runner:install` no longer asks for mcptask.online credentials on a
