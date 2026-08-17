@@ -5,6 +5,31 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.4
+
+The install stops taking things away from the host it is setting up. All three
+of these were in every release up to and including 0.3.3.
+
+- **A project's own token variable survives.** `init` replaced the whole
+  `mcptask-online` entry in `.mcp.json` with one hardcoding
+  `Bearer ${MCPTASK_TOKEN}` — on every install, not only `--force`. A project
+  naming its own variable, and so its own mcptask.online account, was quietly
+  moved onto whatever account `MCPTASK_TOKEN` happened to hold. That does not
+  fail: it succeeds as the wrong user, and every task, effort and bug lands on
+  somebody else's dashboard, with the scheduled job carrying that token to 08:00.
+- **A token living inside `.mcp.json` is no longer deleted.** The legacy gem's
+  installer wrote tokens into an `env` block on the entry, which makes it the
+  shape a migrating host arrives in. Replacing the entry removed the only copy —
+  nothing else had it, because a token that already resolves is deliberately left
+  alone — and the job then got `SET_MCPTASK_TOKEN_HERE` with nothing left to
+  re-resolve, so re-running could not repair it. Such an entry is now left exactly
+  as it is, and the install says so.
+- **An unparseable `.mcp.json` is refused, not replaced.** It used to be treated
+  as absent, which deleted every other MCP server configured in it. One trailing
+  comma was enough, and a project that already runs a coding CLI with servers of
+  its own is the normal case. The install now names the file and the parse error;
+  `--force` moves it aside to `.mcp.json.bak` and writes a fresh one.
+
 ## 0.3.3
 
 - The bundled skills now ask for the model the host actually has. Eight of them
