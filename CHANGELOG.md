@@ -5,7 +5,11 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
-## Unreleased
+## 0.3.0
+
+- The Go runner is the runner: this gem is the Rails distribution, and the
+  legacy `mcptask_runner` gem is retired to critical fixes and its role as the
+  conformance suite's reference implementation.
 
 - The ARM Linux platform gem is named `aarch64-linux`, which is the platform
   such hosts actually resolve. 0.2.4 published it as `arm64-linux`, which

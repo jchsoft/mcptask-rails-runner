@@ -1,9 +1,18 @@
 # mcptask-rails-runner
 
 Rails distribution of the [mcptask.online](https://mcptask.online) autonomous
-runner. A thin Ruby wrapper around the `mcptask_runner` Go binary: the gem
-ships the platform-specific binary inside itself (`libexec/`) and exposes the
-same rake tasks as the legacy `mcptask_runner` gem, delegating 1:1 to the CLI.
+runner, and the way a Rails app installs it. A thin Ruby wrapper around the
+`mcptask_runner` Go binary: the gem ships the platform-specific binary inside
+itself (`libexec/`) and exposes the same rake tasks as the legacy
+`mcptask_runner` gem, delegating 1:1 to the CLI.
+
+The legacy gem is retired. It gets critical fixes only, and it stays in
+existence as the reference implementation the Go runner's conformance suite
+measures against; everything new is written in Go. What you gain by moving:
+Linux and Windows hosts, a scheduled job with no bundler in its path, and a
+handful of places where the old implementation was simply wrong (its token
+resolution read a different half of `.mcp.json` in each of three places, and
+its stream reader died mid-run on an API error envelope).
 
 One gem version carries exactly one binary version — `mcptask-rails-runner
 X.Y.Z` contains the binary from the `vX.Y.Z` release of
