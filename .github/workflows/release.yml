@@ -4,9 +4,14 @@
 # repository and this workflow file.
 #
 # Release procedure:
-#   1. Make sure jchsoft/mcptask-releases has the tag v<VERSION> (goreleaser).
-#   2. Bump lib/mcptask_rails_runner/version.rb to <VERSION>, commit, push.
-#   3. git tag v<VERSION> && git push origin v<VERSION>
+#   1. Bump lib/mcptask_rails_runner/version.rb to <VERSION>, commit, push.
+#   2. Tag the Go repository: git tag -a v<VERSION> && git push origin v<VERSION>
+#   3. Tag this one the same way — no need to wait for step 2 to finish.
+#
+# Step 3 used to say "wait": the binaries only exist once goreleaser has
+# finished, and v0.3.0's gem release started three minutes early, failed on the
+# download and had to be re-run by hand. The fetch below waits for them instead,
+# so the two tags can go back to back.
 
 name: Release
 
@@ -36,6 +41,11 @@ jobs:
               unless tag == "v#{McptaskRailsRunner::VERSION}"'
 
       - name: Fetch Go binaries from mcptask-releases (sha256-verified)
+        # Long enough for the Go release to finish if it is still running (it
+        # takes about 215s), short enough that a release which is never coming
+        # fails inside the run rather than holding a runner for hours.
+        env:
+          MCPTASK_WAIT_FOR_RELEASE: "900"
         run: bin/fetch-binaries
 
       - name: Build all platform gems

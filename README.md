@@ -118,11 +118,23 @@ bundle exec rake package:all   # build all platform gems into pkg/
 
 ## Releasing
 
-Releases are cut by tagging: bump `lib/mcptask_rails_runner/version.rb` to
-match an existing `mcptask-releases` tag, push a matching `vX.Y.Z` tag, and
-the Release workflow downloads the binaries (sha256-verified), builds the
-platform gems and publishes them to rubygems.org through OIDC trusted
-publishing. See `.github/workflows/release.yml`.
+Releases are cut by tagging, twice — the binaries come from the Go repository
+and the gems from this one:
+
+```bash
+# 1. bump lib/mcptask_rails_runner/version.rb, commit, push
+# 2. in mcptask_go_runner:
+git tag -a v0.3.0 -m v0.3.0 && git push origin v0.3.0
+# 3. here, straight after — no waiting:
+git tag -a v0.3.0 -m v0.3.0 && git push origin v0.3.0
+```
+
+Step 3 needs no waiting because the Release workflow's fetch waits for the
+binaries itself (`MCPTASK_WAIT_FOR_RELEASE`, 15 minutes against a Go release
+that takes about four). It then verifies each archive against the release's
+`checksums.txt`, builds the platform gems and publishes them to rubygems.org
+through OIDC trusted publishing. A tag that disagrees with `version.rb` is
+refused before anything is downloaded. See `.github/workflows/release.yml`.
 
 One-time setup on rubygems.org, before the first tag can publish anything —
 the gem name has to exist as a trusted-publisher entry:

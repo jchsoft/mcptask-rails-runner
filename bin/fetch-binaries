@@ -6,6 +6,9 @@
 # binaries under tmp/binaries/<goos>_<goarch>/ for `rake package:all`.
 #
 # Usage: bin/fetch-binaries [version]   (defaults to McptaskRailsRunner::VERSION)
+#
+# MCPTASK_WAIT_FOR_RELEASE=<seconds> keeps waiting for a release that is still
+# being published, instead of failing on the first 404.
 
 require "open-uri"
 require "digest"
@@ -24,10 +27,39 @@ TARGETS = [
   %w[windows amd64 zip]
 ].freeze
 
+# How long to keep waiting for a release that is still being published.
+#
+# 0, the default, fails on the first 404 — which is what somebody running this
+# by hand against a version they mistyped wants. The release workflow passes a
+# real deadline, because the two tags are pushed by hand minutes apart and the
+# binaries only exist once goreleaser has finished: v0.3.0's gem release started
+# three minutes before its binaries appeared, failed on this very download, and
+# had to be re-run. The Go release takes about 215s, so the default below is
+# roughly four times what it needs.
+WAIT_SECONDS = Integer(ENV.fetch("MCPTASK_WAIT_FOR_RELEASE", "0"))
+POLL_SECONDS = 15
+
+# One deadline for the whole run rather than one per download: six full-length
+# waits would be a job hanging for an hour and a half over a release that is
+# never coming.
+DEADLINE = Time.now + WAIT_SECONDS
+
 def fetch(url)
-  URI.parse(url).open("rb", &:read) # OpenURI follows GitHub's redirect to the CDN
-rescue OpenURI::HTTPError => e
-  abort "download failed: #{url} (#{e.message})"
+  announced = false
+  loop do
+    return URI.parse(url).open("rb", &:read) # OpenURI follows GitHub's redirect to the CDN
+  rescue OpenURI::HTTPError => e
+    # Only a file that is not there yet is worth waiting on. A 401 or a 403 will
+    # not fix itself, and neither will a URL that is simply wrong.
+    unpublished = e.message.include?("404") && Time.now < DEADLINE
+    abort "download failed: #{url} (#{e.message})" unless unpublished
+
+    unless announced
+      puts "  #{File.basename(url)} is not published yet — waiting up to #{(DEADLINE - Time.now).round}s"
+      announced = true
+    end
+    sleep POLL_SECONDS
+  end
 end
 
 puts "fetching v#{version} artifacts from #{repo}"
