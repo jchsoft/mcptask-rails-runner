@@ -5,6 +5,15 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.5
+
+No wrapper changes — this release exists to carry a new binary. What the
+binary changed is in the
+[mcptask-releases v0.3.5](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.5)
+notes; the short version is that a run which overflows its context now
+reports what it actually produced, and tells the session that replaces it
+where the context went.
+
 ## 0.3.4
 
 The install stops taking things away from the host it is setting up. All three
