@@ -7,12 +7,29 @@ release notes for the same tag.
 
 ## 0.3.5
 
-No wrapper changes — this release exists to carry a new binary. What the
-binary changed is in the
-[mcptask-releases v0.3.5](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.5)
-notes; the short version is that a run which overflows its context now
-reports what it actually produced, and tells the session that replaces it
-where the context went.
+No wrapper changes — this release carries a new binary. Full notes in
+[mcptask-releases v0.3.5](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.5);
+what a host running the scheduled job will notice:
+
+- **A run that overflows its context now reports what it produced.** A task
+  whose pull request was already open was being called `error` with "task
+  exceeds token limit". That filed a bug piece for work that had shipped, and
+  because the quota decider stops a day on any error, one nearly-finished task
+  ended the rest of the day's runs. It now reports `overflow_pr_open`, the task
+  stays in progress, and the loop carries on to the next one.
+- **The session that replaces an overflowed one is told how to survive.** The
+  in-process restart used to get one sentence of encouragement while the
+  cross-process handoff carried the whole context budget; both now get the same
+  rules, plus a measured account of where the previous session's window went —
+  which file it re-read ten times, which edit kept missing.
+- **The runner now logs what each attempt cost.** One `[context_cost]` line per
+  attempt: tool calls, tool output in kB, files read whole, ranged reads, failed
+  edits. Diagnosing the run that prompted all of the above meant grepping 1.3 MB
+  of stream by hand.
+- **Hosts pinned to a non-Claude model get their dashboard todo list back.** On
+  third-party models behind a local proxy the child never called `TodoWrite`, so
+  the card rendered empty; the instruction is now explicit for those hosts and
+  stays out of the way for Claude's own models, which do it natively.
 
 ## 0.3.4
 
