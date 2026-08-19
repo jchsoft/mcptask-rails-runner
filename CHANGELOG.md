@@ -5,6 +5,30 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.6
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.6](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.6).
+
+- **The scheduled job stops running a binary its project has already replaced.**
+  `rake mcptask_runner:*` has always installed the gem's bundled binary over
+  `~/.mcptask/bin/mcptask_runner` when it was newer; the launchd/systemd job was
+  the one path that skipped it, because the generated launcher execs that
+  installed copy directly. An unattended host would pull main, run
+  `bundle install` while working a task, never call `mcptask_runner:update`, and
+  sit on a stale runner indefinitely. A scheduled run now reads the project's own
+  `Gemfile.lock`, and if it names a newer wrapper than the running binary, it
+  installs that gem's copy and re-runs on it.
+
+  This is not a download. The runner still never fetches a release on its own —
+  it only honours the version already merged and installed on purpose. Set
+  `MCPTASK_NO_ADOPT=1` to keep a host's binary pinned regardless.
+
+  Note the ordering: the already-installed binary is the one that decides whether
+  to adopt, so a host starts keeping itself current only once it is running 0.3.6
+  or later. Hosts on 0.3.5 and older need one `rake mcptask_runner:update` by hand
+  first.
+
 ## 0.3.5
 
 No wrapper changes — this release carries a new binary. Full notes in
