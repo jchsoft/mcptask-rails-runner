@@ -5,6 +5,22 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.7
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.7](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.7).
+
+- **0.3.6 only ever reached one platform — 0.3.7 is that release, delivered.**
+  rubygems.org was in the middle of an outage while 0.3.6 was being pushed. The
+  six platform gems go up one at a time; `aarch64-linux` landed and the next push
+  got a 503, which took the rest of the release down with it. Re-running did not
+  help either: rubygems refuses to repush a version that already exists, so the
+  job died on the gem it had sent and never reached the five it had not. Every
+  platform gets 0.3.7; on `aarch64-linux`, 0.3.6 already carries the same binary.
+
+  The release job now asks rubygems which gems it already has and skips those, so
+  a release interrupted half way can be finished by running it again.
+
 ## 0.3.6
 
 No wrapper changes. Full notes in
