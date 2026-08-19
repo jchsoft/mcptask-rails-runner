@@ -5,6 +5,24 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.8
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.8](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.8).
+
+- **A run that merged its PR no longer reports none of the work it did.** The
+  auto-squash prompt stated its progress-logging cadence in a block after the
+  last numbered step; an agent working that fourteen-step spine for half an hour
+  never came back to it. One task ran 36 minutes, completed every step, merged,
+  and logged nothing — the effort only reached the dashboard because a later pass
+  re-picked the task. Each milestone is now named at the step where it falls due,
+  the CI-failed path gets a logging point it never had, and a resumed session
+  keeps the cadence instead of losing it with the rest of the workflow.
+
+- **The end of the working day is a setting rather than a constant.** The runner
+  stopped at 18:00 no matter what; the installer now asks, and `--until` sets it
+  per run.
+
 ## 0.3.7
 
 No wrapper changes. Full notes in
