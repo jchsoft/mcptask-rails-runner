@@ -54,7 +54,29 @@ jobs:
       - uses: rubygems/configure-rubygems-credentials@main
 
       - name: Push every gem
+        # Six pushes, one at a time, and rubygems can go down between any two of
+        # them — it did during 0.3.6, which left aarch64-linux published and the
+        # other five not. Re-running is the fix for that, but a re-run used to
+        # abort on the first gem that was already up (rubygems refuses a
+        # repush), so it delivered nothing and the release stayed half done.
+        # Skipping what is already published makes the re-run finish the job.
+        # This is not a blanket "ignore push errors": the skip is decided from
+        # what rubygems says it has, and any other failure still fails the step.
         run: |
+          published=$(curl -sSf \
+            "https://rubygems.org/api/v1/versions/mcptask-rails-runner.json" |
+            ruby -rjson -e '
+              JSON.parse($stdin.read).each do |v|
+                puts v["platform"] == "ruby" ? v["number"] : "#{v["number"]}-#{v["platform"]}"
+              end')
           for gem in pkg/*.gem; do
+            # rubygems names the file "<name>-<version>[-<platform>].gem", so
+            # stripping the name off the basename yields the same key as above.
+            key=$(basename "$gem" .gem)
+            key=${key#mcptask-rails-runner-}
+            if printf '%s\n' "$published" | grep -qxF -- "$key"; then
+              echo "already on rubygems, skipping: $key"
+              continue
+            fi
             gem push "$gem"
           done
