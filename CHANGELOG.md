@@ -5,6 +5,30 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.11
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.11](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.11).
+
+- **A role that ignores working hours is no longer stopped by its hour goal.**
+  A runner configured to work until 23:00 was being killed mid-task at 18:15,
+  and the setting everyone reached for was the wrong one: `end_of_workday_hour`
+  only governs how long an idle loop waits for a new task, and never touches a
+  task already running. What ended the day was the daily hour quota, which reads
+  `today.hour_goal` from mcptask.online and stops once the hours worked reach
+  it. The `respect_working_hours` flag on the user's role reads like the switch
+  that turns this off, and it never was — it decides where a logged effort lands
+  on the timeline, nothing more. The quota guard now reads the flag from
+  `time_status` and, when the role has opted out, neither the spent budget nor a
+  zero-budget weekend stops the loop. A poll that does not answer still fails
+  closed: no answer from the endpoint is not permission to run. Nothing changes
+  until the server ships the field, because an absent flag keeps its old
+  meaning.
+
+- **A disabled fetch tool is a detour, not the end of the day.** Triage treated
+  an unavailable piece-fetch tool as a terminal condition and ended the run,
+  which turned one missing MCP tool into a whole idle day.
+
 ## 0.3.10
 
 No wrapper changes. Full notes in
