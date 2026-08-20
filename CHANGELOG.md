@@ -5,6 +5,49 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.9
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.9](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.9).
+
+- **A ticket the runner declines as too large no longer ends the working day.**
+  Reading a bug report and concluding that it is a multi-day feature is a fair
+  judgement to reach, but the only word the runner had for it was "failure" — and
+  "failure" stops the loop. One such call, made 96 seconds into a run, exited the
+  process at 10:17 with seven hours of the day left: exit code zero, a clean run
+  in the scheduler's record, and nothing anywhere to say a day had been given up
+  over one oversized ticket. The judgement now has an outcome of its own. The
+  agent writes its scope assessment on the piece, logs the analysis as the work it
+  was, blocks the ticket so triage stops offering it, and the loop moves to the
+  next task. A second refusal of the same ticket does still stop the loop —
+  that means the block did not take — and it says so rather than exiting quietly.
+
+- **A task belonging to a different project is discarded instead of worked.** The
+  runner never checked that the piece triage picked came from the project named in
+  CLAUDE.md. Upstream, one runner's answer was reaching every connected client, so
+  a runner installed for one project picked up another project's task and set
+  about it. Triage now reports which project the piece it fetched belongs to, and
+  a mismatch is thrown away.
+
+- **One launcher log file per run, instead of one that grows forever.** Nothing
+  ever truncated the per-project log: 401 MB across projects on one machine, 277 MB
+  of it in a single file, and diagnosing a run meant locating its start marker
+  inside all of that. Each run gets its own file now, pruned at 30 days or 500 MB
+  per project, whichever bites first. Existing installs keep appending to their old
+  file until install is re-run, and that file is left alone rather than deleted —
+  the disk space is the operator's to reclaim.
+
+- **The installer says which account a scheduled job will authenticate as.** On a
+  host carrying more than one mcptask account, regenerating a job could silently
+  swap its identity: nothing failed, nothing was logged as wrong, and the work
+  landed on the wrong dashboard until somebody decoded the token by hand.
+
+- **The bundled skills follow the mcptask parameter renames.** The MCP tools are
+  moving to names that state which id form each parameter carries. The skills ship
+  the new names now with the old ones kept as a transitional note, so a host that
+  updates before the server change still matches whichever names its own server
+  currently expects.
+
 ## 0.3.8
 
 No wrapper changes. Full notes in
