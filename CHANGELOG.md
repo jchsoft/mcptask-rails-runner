@@ -5,6 +5,32 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.10
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.10](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.10).
+
+- **The bundled helpers find Ruby on a machine that does not use rvm.** A Mac
+  mini managing Ruby with rbenv got the system 2.6 for every test and CI run, and
+  the binstubs died before printing anything worth reading. The helper was written
+  where rvm was: it looked for `.ruby-version` in the current directory only,
+  probed three fixed paths under the home directory, and matched on what those
+  directories were named. None of that covers the case rbenv actually fails on —
+  the shell these helpers run in is neither interactive nor a login shell, and
+  rbenv, asdf and mise all install themselves from a line in `~/.zshrc` that such
+  a shell never reads. They now ask each manager where it keeps the pinned
+  version, fall back to its documented layout when the manager itself is
+  unreachable, cover rvm, rbenv, asdf, mise, chruby, frum and Homebrew alike, and
+  confirm each candidate by asking that interpreter its version rather than
+  trusting a directory name. Which interpreter a run got is recorded in its log
+  header, and a pinned version the machine does not have says so instead of
+  failing later somewhere else.
+
+- **The shipped permission baseline no longer names one developer's home
+  directory.** It granted read access to `/Users/josefchmel/.rvm` literally,
+  which on anybody else's machine grants nothing. The paths are relative to the
+  home directory now, and the other version managers are in the list.
+
 ## 0.3.9
 
 No wrapper changes. Full notes in
