@@ -5,6 +5,57 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.12
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.12](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.12).
+
+**Upgrading:** run `mcptask_runner update` in each project after the binary
+upgrade. Nothing does it for you, so without that step the fixes below stay
+installed nowhere — the helpers in `~/.claude/bin` and the skills in each
+project's `.claude/skills/` keep whatever version they already had. No `--force`
+is needed, including on hosts whose skills carry a rewritten model name.
+
+- **The guard against running the test suite directly had stopped guarding.**
+  `check_test_lock` refuses a direct `bin/ci` while another agent's suite holds
+  the global lock. It looked for pidfiles in a flat directory that nothing has
+  written in a long time, so its "pidfile missing and the lock is over ten
+  seconds old" check matched every lock there has ever been: each one read as
+  stale and the command went through. The guard worked for the first ten seconds
+  of a lock's life and never again. The path is now rebuilt from the lock's own
+  project, the way the shell helper beside it already did it. A lock that names
+  no project is no longer guessed to be dead either — a holder that cannot be
+  located is not a holder that can be verified.
+
+- **The refusal now says what to do instead.** Declining to touch a lock owned
+  by another working directory was correct for a live one and a dead end for a
+  dead one, and a prohibition with nowhere to go is what got the lock bypassed
+  in the first place: an agent told not to interfere ran the suite unlocked.
+  It now names the way out — a stale lock is reaped by `acquire` itself,
+  whatever directory owns it. Ownership also compares normalised paths, so the
+  same checkout reached through a symlink, a trailing slash or a subdirectory
+  stops looking foreign, while a linked worktree stays correctly distinct.
+
+- **Two failures in taking the lock, both silent.** The directory that
+  serialises the moment of acquiring had no staleness handling, so an acquire
+  killed midway left it behind for good and wedged every later run behind a lock
+  reported as `unknown` — which the orchestrator cannot wait on, so it spun to
+  its retry cap and called the lock stuck while naming nothing to delete. And a
+  lockfile missing its `PID=` line killed `acquire` outright before the staleness
+  check could reap it, leaving a blank error and a malformed lock that every
+  retry hit again.
+
+- **Bundled skills no longer declare a `model:`.** A model name written into
+  `.claude/skills/` can only be right for one backend, and that directory is
+  read by two: the runner's child process and whoever opens the same project in
+  a session of their own. Whichever way it was written it was wrong for one of
+  them, and wrong silently, because the CLI returns its model error as the
+  skill's own result and the agent above reads that as the answer. Each fork now
+  runs on its session's own model; `context: fork` is untouched, and that is
+  what actually keeps a fork's output out of the parent's context.
+
+- **A SIGTERM is not a failed attempt, so the runner announces no retry.**
+
 ## 0.3.11
 
 No wrapper changes. Full notes in
