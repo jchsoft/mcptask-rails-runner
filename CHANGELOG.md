@@ -5,6 +5,33 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.13
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.13](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.13).
+
+**Upgrading:** run `mcptask_runner update` in each project after the binary
+upgrade — this release ships a new helper (`runner-log`) and rewritten config
+sections, and nothing installs those for you.
+
+Binary changes carried by this version:
+
+- The loop asks `GET /api/:account/pieces/next` before paying for a triage
+  session; an empty queue is `no_more_tasks` without a model. Until
+  mcptask.online ships the endpoint (task #11691) the 404 falls through to
+  triage exactly as before.
+- The configured end of workday is the one hard stop, checked after a task
+  finishes — and there is no default any more.
+- The skip list outlives the process: a restart does not re-pick what today
+  already declined. `failure`, `task_already_started`, `merge_failed`,
+  `merge_unverified` and `out_of_scope` set the task aside for the day instead
+  of stopping.
+- `respect_working_hours` is read from the user profile once at startup.
+- A guard of the runner's own that did not hold files a bug piece instead of
+  a log line.
+- `runner-log`, the helper an operator types to tail the current run; the
+  install ends with a summary of every config section the runner reads.
+
 ## 0.3.12
 
 No wrapper changes. Full notes in
