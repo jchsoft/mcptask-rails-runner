@@ -5,6 +5,31 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.14
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.14](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.14).
+
+**Upgrading:** run `mcptask_runner update --self` on each host. This release
+changes loop behaviour inside the binary and ships no new skills or helpers, so
+plain `mcptask_runner update` has nothing to do here. The binary that runs at
+08:00 lives in `~/.mcptask/bin` and is replaced by `--self`, never by
+`bundle update`.
+
+Binary changes carried by this version:
+
+- A queue that has stayed empty for half an hour is now asked about every half
+  hour rather than every five minutes. `waiting_strategy.short_wait_minutes`
+  remains what the operator configured for the first rounds — it is the right
+  answer in the minutes just after a task finishes — and once those short waits
+  add up to one `long_wait_minutes`, the long wait takes over until there is
+  work again. On the installer's 5 and 30 that is 21 idle rounds across an
+  eight-hour afternoon instead of 96, and as many pairs of rows in the
+  dashboard's activity feed.
+- The quota check made after an empty round no longer ends the day on a silent
+  `break` — the log says why the runner stopped. Daily mode's "will wait 1 hour
+  before retry" names the wait it actually takes.
+
 ## 0.3.13
 
 No wrapper changes. Full notes in
