@@ -5,6 +5,63 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## Unreleased
+
+- The line `Binary.install!` prints just before it hands over with `exec` is
+  coloured like everything the binary prints after it: green for a first
+  install and for the same version laid down again, yellow for replacing an
+  older copy, for keeping a newer one, and for `MCPTASK_RUNNER_BIN` diverting
+  the install. Until now it was the last grey line on the screen, sitting in
+  front of a coloured wall and looking like the least important thing there
+  while being the only line that reports a binary was replaced.
+
+  The palette is a deliberate copy of the binary's own rather than a second
+  opinion — `MCPTASK_RUNNER_COLOR` first and winning both ways, then
+  `NO_COLOR`, then `TERM=dumb`, then whether the stream is a terminal, and on
+  Windows the terminal has to advertise ANSI. Both halves of
+  `rake mcptask_runner:update` now answer that question the same way, and a
+  redirect or a pipe still gets exactly the bytes it got before.
+
+## 0.3.18
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.18](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.18).
+
+**Upgrading:** run `mcptask_runner update --self` on each host. Both changes
+below are binary behaviour, and the first of them is visible in the output of
+the very command that installs it — so the run that replaces the binary is
+still grey, and every run after it is not.
+
+Binary changes carried by this version:
+
+- The install and update output is coloured, so the one row that needs a look
+  no longer reads exactly like the thirty that do not: green for up-to-date
+  and added, yellow for updated and force-updated, red for conflict-skipped,
+  dimmed section tags, and warnings in red on stderr. It is decided per stream
+  and only when the stream is really a terminal, so a pipe, a redirect and a
+  launchd log get the bytes they always got; `MCPTASK_RUNNER_COLOR` and
+  `NO_COLOR` override.
+- A child's process group is remembered when the child starts, so anything it
+  leaves behind is still reachable after it exits. A process group outlives
+  its leader, but the kernel can no longer name that group once the leader has
+  been reaped — and the kill path used to ask at kill time, get nothing, and
+  signal a bare pid that no longer resolved. Anything a child started and then
+  exited on went on running: a dev server, a backgrounded command, a watcher.
+  Nothing raised, so nothing ever reported it. This had shipped in every
+  version of the runner there has ever been.
+
+## 0.3.17
+
+No wrapper changes, and no entry was written here at the time. Full notes in
+[mcptask-releases v0.3.17](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.17).
+
+Nothing an operator can observe changed in the binary either. The release
+carried one refactor — the event stream's assignment callback moved to a
+setter so that a caller supplying its own stream gets it too — which leaves
+production behaviour identical and exists so the path cannot break silently
+under test. Everything else in it was the chaos stress harness, which does not
+ship in the binary.
+
 ## 0.3.16
 
 No wrapper changes. Full notes in
