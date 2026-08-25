@@ -14,6 +14,7 @@ module McptaskRailsRunner
   end
 end
 
+require_relative "mcptask_rails_runner/palette"
 require_relative "mcptask_rails_runner/binary"
 
 # Only inside a booted Rails app — rails/railtie needs active_support loaded,

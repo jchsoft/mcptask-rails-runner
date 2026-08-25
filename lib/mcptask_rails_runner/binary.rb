@@ -86,10 +86,12 @@ module McptaskRailsRunner
     # versions and one installed binary, so a project pinning an older gem must
     # not quietly drag the machine's runner backwards.
     def install!(install_dir: INSTALL_DIR, gem_root: GEM_ROOT, out: $stdout)
+      paint = Palette.for(out)
+
       override = ENV["MCPTASK_RUNNER_BIN"]
       unless override.nil? || override.empty?
-        out.puts "[mcptask_runner] MCPTASK_RUNNER_BIN is set — running #{override} " \
-                 "and leaving #{installed_path(install_dir: install_dir)} alone."
+        out.puts paint.changed("[mcptask_runner] MCPTASK_RUNNER_BIN is set — running #{override} " \
+                               "and leaving #{installed_path(install_dir: install_dir)} alone.")
         return override
       end
 
@@ -98,14 +100,20 @@ module McptaskRailsRunner
 
       existing = installed_version(target)
       if existing && existing > Gem::Version.new(VERSION)
-        out.puts "[mcptask_runner] #{target} already holds #{existing}, which is newer than this " \
-                 "gem's #{VERSION} — keeping it. Delete that file to install this gem's binary instead."
+        out.puts paint.changed("[mcptask_runner] #{target} already holds #{existing}, which is newer than " \
+                               "this gem's #{VERSION} — keeping it. Delete that file to install this " \
+                               "gem's binary instead.")
         return target
       end
 
       copy(source, target)
-      out.puts "[mcptask_runner] installed mcptask_runner #{VERSION} into #{target}" \
-               "#{existing ? " (replacing #{existing})" : ''}."
+      # Green when this leaves the machine where it already was — a first
+      # install, or the same version laid down again. Yellow when a binary the
+      # host was running has just been replaced, which is the one line of this
+      # command worth stopping on.
+      line = "[mcptask_runner] installed mcptask_runner #{VERSION} into #{target}" \
+             "#{existing ? " (replacing #{existing})" : ''}."
+      out.puts(existing && existing < Gem::Version.new(VERSION) ? paint.changed(line) : paint.ok(line))
       target
     end
 

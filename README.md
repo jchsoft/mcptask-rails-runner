@@ -91,6 +91,15 @@ Go binary as-is. The only legacy task without a counterpart is
 `verbose=true` and `ignore_quota=true` environment variables are honored by
 the binary itself, exactly as before.
 
+`install` and `update` print one line before handing the process over, and it
+is coloured the way the binary colours everything after it: green when the
+install left the machine where it already was, yellow when a binary the host
+was running has just been replaced or when the version on disk was kept
+instead. Only at a terminal — a pipe, a redirect and CI get the plain text
+they always got. `NO_COLOR` turns it off, and `MCPTASK_RUNNER_COLOR` (`1` /
+`0`) answers it either way, ahead of `NO_COLOR`. The binary reads the same two
+variables.
+
 ## Supported platforms
 
 Platform gems exist for `arm64-darwin`, `x86_64-darwin`, `aarch64-linux`,

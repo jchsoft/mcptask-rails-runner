@@ -5,6 +5,8 @@ require "tmpdir"
 require "stringio"
 
 class BinaryTest < Minitest::Test
+  include ColourEnv
+
   def teardown
     ENV.delete("MCPTASK_RUNNER_BIN")
   end
@@ -158,6 +160,84 @@ class BinaryTest < Minitest::Test
 
     assert_equal "/home/x/.mcptask/bin/#{McptaskRailsRunner::Binary.executable_name}", path
     refute_includes path, McptaskRailsRunner::VERSION
+  end
+
+  # --- what the operator sees ---
+  #
+  # This is the first line of `rake mcptask_runner:update`, and everything after
+  # it comes from the Go binary, in colour. Grey in front of that wall reads as
+  # the least important thing on the screen, when it is the only line reporting
+  # that a binary was replaced.
+
+  def test_a_first_install_says_in_green_that_nothing_was_displaced
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        out = FakeTTY.new
+        install(install_dir: File.join(root, "installed"), gem_root: staged_gem(root), out: out)
+
+        assert_includes out.string, McptaskRailsRunner::Palette::GREEN
+        refute_includes out.string, McptaskRailsRunner::Palette::YELLOW
+      end
+    end
+  end
+
+  def test_replacing_the_binary_the_host_was_running_is_yellow
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        install_dir = File.join(root, "installed")
+        stub_installed(install_dir, "0.1.0")
+        out = FakeTTY.new
+
+        install(install_dir: install_dir, gem_root: staged_gem(root, body: "#!/bin/sh\necho bundled\n"), out: out)
+
+        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+      end
+    end
+  end
+
+  # Not what the operator asked for, so not green: the install they ran left the
+  # machine on a different version than the gem they ran it from.
+  def test_keeping_a_newer_binary_is_yellow
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        install_dir = File.join(root, "installed")
+        stub_installed(install_dir, "9.9.9")
+        out = FakeTTY.new
+
+        install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
+
+        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+      end
+    end
+  end
+
+  def test_the_env_override_notice_is_yellow_too
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        ENV["MCPTASK_RUNNER_BIN"] = "/opt/custom/mcptask_runner"
+        out = FakeTTY.new
+
+        install(install_dir: File.join(root, "installed"), gem_root: staged_gem(root), out: out)
+
+        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+      end
+    end
+  end
+
+  # The launchers tee this into ~/logs/mcptask_runner/*.log, and CI reads it as
+  # text. Escape codes baked into either would be worse than the grey wall.
+  def test_a_stream_that_is_not_a_terminal_gets_no_escape_codes
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        install_dir = File.join(root, "installed")
+        stub_installed(install_dir, "0.1.0")
+        out = StringIO.new
+
+        install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
+
+        refute_includes out.string, "\e["
+      end
+    end
   end
 
   private
