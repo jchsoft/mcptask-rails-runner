@@ -7,6 +7,15 @@ release notes for the same tag.
 
 ## Unreleased
 
+## 0.3.19
+
+**Upgrading:** `bundle update mcptask-rails-runner` in each project for the
+wrapper change, and `mcptask_runner update --self` on each host for the binary
+ones — the installed copy is per machine, so the project bump alone does not
+change what the 08:00 job runs. Both binary changes below are prompt text sent
+to the child, so they take effect on the next run the updated binary starts;
+there is nothing to migrate.
+
 - The line `Binary.install!` prints just before it hands over with `exec` is
   coloured like everything the binary prints after it: green for a first
   install and for the same version laid down again, yellow for replacing an
@@ -21,6 +30,24 @@ release notes for the same tag.
   Windows the terminal has to advertise ANSI. Both halves of
   `rake mcptask_runner:update` now answer that question the same way, and a
   redirect or a pipe still gets exactly the bytes it got before.
+
+Binary changes carried by this version:
+
+- Every numbered workflow step that does real work now carries its own "LOG
+  PROGRESS NOW" line, and each one names the `TaskUpdate` that closes the same
+  step's todo item. A run on 2026-08-25 opened its pull request having logged
+  nothing at all, while its plan moved on the dashboard the whole time: three
+  anchors sat on the auto-squash spine, the seven steps between them said
+  nothing about logging, and the three manual workflows had no anchor anywhere
+  — only the block that sits past the last numbered step, which is the
+  arrangement already known not to get read. Hanging the log on the call the
+  child does make reliably is what ties the effort trail to the plan.
+- The child is told to search inside the project directory and never to run
+  `find /` or `find ~`. That walk enters macOS's protected folders, and the
+  permission dialog it raises names mcptask_runner and blocks the call until it
+  times out — at 08:02 there is nobody there to answer it. The instruction
+  names where to look instead: `bundle show` / `gem which` for Ruby, `go env
+  GOMODCACHE` for Go.
 
 ## 0.3.18
 
