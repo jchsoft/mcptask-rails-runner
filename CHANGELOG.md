@@ -5,6 +5,43 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.16
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.16](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.16).
+
+**Upgrading:** run `mcptask_runner update --self` on each host. Everything in
+this release is binary behaviour and no new skills or helpers ship with it, so
+plain `mcptask_runner update` has nothing to do here. The binary that runs at
+08:00 lives in `~/.mcptask/bin` and is replaced by `--self`, never by
+`bundle update`.
+
+Binary changes carried by this version:
+
+- The runner card on the dashboard is filled in rather than sparse. It names
+  the binary drawing it, says how a finished run went, counts out the retries
+  the CLI is riding out, links the pull request a run has just opened, and
+  says what an MCP tool call is acting on instead of arriving as a bare tool
+  name. A task forked inside a subagent reaches the card too, and the
+  notification that ends it is no longer thrown away.
+- A card whose stream goes quiet keeps saying the last thing it knew instead
+  of emptying out, and the TODO list fills in on Opus and Sonnet as well.
+- An idle wait ends the moment mcptask.online says this runner has been given
+  a piece, rather than sitting out the rest of the interval.
+- A stop on the daily quota says which quota and how many hours it means —
+  `worked_today=8.2h of per_day=8h`. The hours are the user's day rather than
+  this run's, so a runner that idled all morning could stop on a budget it
+  never touched, and the old line gave a reader nothing to tell those apart
+  with. The same line now distinguishes a spent budget from an endpoint that
+  never answered, and a stop caused by a failed task no longer claims to be a
+  quota stop.
+- The reconnect notice in the event stream names what closed the socket.
+
+## 0.3.15
+
+No wrapper changes, and no entry was written here at the time. Full notes in
+[mcptask-releases v0.3.15](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.15).
+
 ## 0.3.14
 
 No wrapper changes. Full notes in
