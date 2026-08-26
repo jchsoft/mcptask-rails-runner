@@ -7,6 +7,41 @@ release notes for the same tag.
 
 ## Unreleased
 
+## 0.3.20
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.20](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.20).
+
+**Upgrading:** run `mcptask_runner update --self` on each host, and do it for
+this one rather than at leisure — the fix below can only reach a runner that is
+running the new binary, and the situation it fixes keeps happening until then. A
+daily process picks the new copy up at its night swap, but only once that copy
+is on disk. The project bump alone still changes nothing about what the 08:00
+job runs.
+
+Binary changes carried by this version:
+
+- A piece assigned to somebody else while this runner is working it now stops
+  the child, instead of being worked to the end by a runner it no longer belongs
+  to. The dashboard socket has always carried both halves of an assignment —
+  "given to you" cut an idle wait short, and "given to somebody else" reached
+  nothing — so a task moved between two agents was picked up by its new owner
+  while its old one carried on: two agents on one piece, the same branch name
+  pushed twice, two sets of efforts logged. The runner now abandons the piece,
+  says so, and goes back to the queue for one that is still its own. It is not a
+  reason to stop the day, and the piece is deliberately not set aside: the queue
+  has already stopped offering it, and it stays workable if it is handed back.
+- The run log is coloured as it is read, and the file itself stays plain. The
+  two lines that matter in a wall of uniform text — the ones `Warn` and `Error`
+  already mark with a glyph — are painted red and yellow, a child's stderr is
+  yellow, and the `[Component]` tags, cost lines and phase separators are dimmed
+  so the shape of a run is visible in a scroll. Only what the runner itself
+  marked is coloured; guessing a severity from the wording would be wrong on the
+  day it mattered. Nothing is written to the file, which is what bug reports
+  attach and what people grep. `runner-log --paint` is the same filter over
+  stdin, so `tail -f any.log | runner-log --paint` works for a log read some
+  other way.
+
 ## 0.3.19
 
 **Upgrading:** `bundle update mcptask-rails-runner` in each project for the
