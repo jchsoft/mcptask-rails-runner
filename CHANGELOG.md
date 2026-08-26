@@ -5,13 +5,16 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
-## Unreleased
+## 0.3.21
 
-No wrapper changes. The binary change below is written down now rather than at
-tag time, because tag time is exactly where the entries for 0.3.17 and 0.3.18
-were lost.
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.21](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.21).
 
-Binary changes waiting for a version:
+**Upgrading:** run `mcptask_runner update --self` on each host. Both changes are
+binary behaviour, and the first of them only stops costing you a working day
+once the host is actually running the new binary.
+
+Binary changes carried by this version:
 
 - A deploy of mcptask.online now costs one attempt instead of the working day.
   While the site is being deployed the MCP server is unreachable for minutes and
@@ -36,6 +39,14 @@ Binary changes waiting for a version:
   Like every binary fix, it reaches a host only once that host runs the new
   binary — `mcptask_runner update --self` — and until then a deploy goes on
   costing the day.
+
+- Today's skip list is visible. A task the runner has set aside — out of scope,
+  failed, already taken by somebody else, a merge it cannot finish — is skipped
+  by every later triage that day, and until now the only trace of that decision
+  was one line in the log at the moment it was made. It now shows on the startup
+  banner, in every wait, and on the dashboard card, so an operator looking at a
+  quiet runner can see what it has already declined rather than wondering why a
+  piece keeps not being picked up.
 
 ## 0.3.20
 
