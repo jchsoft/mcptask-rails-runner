@@ -7,6 +7,36 @@ release notes for the same tag.
 
 ## Unreleased
 
+No wrapper changes. The binary change below is written down now rather than at
+tag time, because tag time is exactly where the entries for 0.3.17 and 0.3.18
+were lost.
+
+Binary changes waiting for a version:
+
+- A deploy of mcptask.online now costs one attempt instead of the working day.
+  While the site is being deployed the MCP server is unreachable for minutes and
+  then comes back by itself. The runner used to spend its entire recovery budget
+  inside about forty seconds — a child dies in ten, five seconds between
+  restarts, two restarts — so all three attempts lost the same race before the
+  server could possibly be back, and the run ended with `error`. That status is
+  what ends the day, so one deploy could end a day that had already completed
+  eighteen tasks.
+
+  The two situations that reach that path are now told apart where they are
+  detected, rather than by reading the message afterwards. A deferred tool that
+  never loaded is the child's own miss: it keeps its two fast restarts and still
+  ends in an error, because it is not going to fix itself. An outage gets six
+  restarts at twelve times the wait — about six minutes, which spans a deploy —
+  and when that runs out it ends the way a stall does: a verdict the loop
+  carries on from, the task left `in_progress` for the next triage, and no bug
+  piece, because a deploy is not a defect anybody can fix. The wait keeps the
+  heartbeat going, so a card watched through a deploy says the runner is waiting
+  rather than falling silent.
+
+  Like every binary fix, it reaches a host only once that host runs the new
+  binary — `mcptask_runner update --self` — and until then a deploy goes on
+  costing the day.
+
 ## 0.3.20
 
 No wrapper changes. Full notes in
