@@ -5,6 +5,63 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.22
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.22](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.22).
+
+**Upgrading takes two commands this time, not one.** The usual
+`mcptask_runner update --self` replaces the binary, and that is enough for the
+loop changes below. It is *not* enough for the skills and helpers: those are a
+data pack the binary carries, and they are only written into a project by
+
+```
+mcptask_runner update
+```
+
+Run it in each host project after updating the binary. Skipping it leaves the
+old `/test-runner` and `/ci-runner` in place, and on a project that is not
+Rails those name commands it cannot run — which is the very thing this version
+fixes. A host that has locally edited a skill keeps its edit; `FORCE=1` takes
+the new one and leaves a `.bak`.
+
+Binary changes carried by this version:
+
+- **The bundled CI and test skills stop naming a framework.** `/test-runner`
+  and `/ci-runner` used to spell out `bin/rails test`, `test:system` and
+  RuboCop, and `check_test_lock` recognised a running suite by six regexes,
+  five of which were Ruby. On a Django, Node or Swift host the commands did
+  not run and the concurrency guard waved every real test command through —
+  blind on exactly the projects a universal runner exists for. Both now read
+  what the project declares in `.claude/test-commands.json`, which
+  `mcptask_runner init` writes and `update` backfills; when the file is absent
+  the toolchain is detected from `go.mod`, `Gemfile`, `package.json`,
+  `manage.py`, `pyproject.toml` or `Package.swift`, and when nothing is
+  recognised the runner says so instead of guessing a command.
+
+- **Two more places the prompt spoke Rails to everyone.** The auto-squash
+  workflow told every project to run `bin/rails assets:precompile
+  RAILS_ENV=test` between its unit and system suites, and the manual
+  screenshot step named a Rails class. Neither is measured by what it breaks —
+  the first costs a turn or invites a plausible substitute, the second is
+  silently ignored — but both contradict the claim the product makes.
+
+- **A failed task now waits an hour, not the rest of the day.** A task that
+  fails is set aside and the runner moves on; the day no longer ends over one
+  piece.
+
+- **The dashboard can take a piece off the skip list.** A piece set aside
+  earlier in the day can be released from the card, and the runner picks it up
+  again without a restart.
+
+- **A closed socket is described by whoever actually saw it close.** Two paths
+  reported a dropped dashboard connection — the read loop, which knows the
+  close code the server sent, and a failed write, which knows only that the
+  socket was gone. Whichever finished first wrote the notice, so a close with
+  a code could be reported as a bare transport error. The reader's account now
+  wins, which is what makes "the server closed it, code 1001" trustworthy when
+  you are deciding whether to go and look at the server.
+
 ## 0.3.21
 
 No wrapper changes. Full notes in
