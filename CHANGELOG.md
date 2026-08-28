@@ -5,6 +5,41 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.23
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.23](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.23).
+
+**Upgrading is the usual one command** — `mcptask_runner update --self`. The
+skills-and-helpers data pack did not change in this version, so a follow-up
+bare `update` is not required; the changes below live in the binary itself.
+
+Binary changes carried by this version:
+
+- **`--ignore-quota` now means ignore, everywhere.** The daily mode's
+  day-level scheduler used to keep asking mcptask.online about the budget even
+  with the flag set, so a REST outage could park an unattended daily host
+  until the next business day. With the flag set the runner now performs no
+  budget queries at all; the end-of-workday clock still applies — it is a time
+  rule, not a quota rule (task #11891).
+- **The work window keeps its minutes.** `mcptask_runner init --until 18:30`
+  now stores `work_window.end_of_workday_minute` next to the existing hour key
+  and the loop stops picking up new work at 18:30, not 18:00. The key is
+  additive: a config without it means `:00`, so existing hosts change nothing.
+  A value the config cannot hold is refused loudly, never rounded — `--until`
+  used to keep only the hour and say nothing (tasks #11892, #11896).
+- **`update` protects locally modified helper scripts** the way it has always
+  protected skills: content hashes in a manifest, one of five outcomes per
+  file (added / up-to-date / updated / conflict-skipped / force-updated), and
+  a `.bak` next to anything `FORCE=1` overwrites. On the first `update` after
+  this release, a helper edited by hand reports `conflict-skipped` instead of
+  being silently overwritten — that is the fix working, not a failure
+  (task #11894).
+- The Ruby-gem conformance baseline now runs nightly in CI rather than on
+  every push, and the docs stopped contradicting each other about its role
+  (task #11893). Stale comments aligned (task #11895) and a Windows-only
+  test flake pinned down (task #11897).
+
 ## 0.3.22
 
 No wrapper changes. Full notes in

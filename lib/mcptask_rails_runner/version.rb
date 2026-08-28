@@ -10,5 +10,5 @@ module McptaskRailsRunner
   # Binary::INSTALL_DIR. So the pin is per project and per foreground rake
   # invocation; the installed copy is per machine, and the newest binary any of
   # those projects offers is the one that stays.
-  VERSION = "0.3.22"
+  VERSION = "0.3.23"
 end
