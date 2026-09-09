@@ -5,6 +5,40 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.24
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.24](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.24).
+
+**Upgrading takes two commands this time.** `mcptask_runner update --self`
+replaces the binary; then a bare `mcptask_runner update` in any one project on
+the host, because the helper scripts in `~/.claude/bin` changed and the binary
+does not rewrite them on its own. Until that second step runs, a suite started
+through `/ci-runner` finds the test lock held by the old `ci_start` and refuses
+itself as if another agent held it (task #12369).
+
+Binary changes carried by this version:
+
+- **`harness:` is required in `config/mcptask_runner.yml`.** The runner drives
+  a coding CLI named by a profile — `claude`, `codex` or `opencode` — and there
+  is no default. `update` writes `harness: claude` once for a project it
+  already installed into and says so; a new project needs
+  `mcptask_runner init --cli <name>`; a project with neither refuses to start
+  and names the key (stories #12276, #12279).
+- **Codex CLI and OpenCode are supported harnesses.** `init --cli codex` and
+  `init --cli opencode` set a project up for those CLIs; the work loop, the
+  card and the mcptask.online protocol are unchanged. Codex login is done once
+  by hand (`codex login`); the runner checks it before a run. Both harnesses
+  were driven for real on 2026-09-09 (stories #12277, #12278).
+- **The runner card shows the harness** beside the model, and `version` opens
+  with a `Harness: <name> -> <binary>` line (story #12279).
+- **`bin/ci` takes the machine-wide test lock itself** and refuses out loud when
+  somebody else holds it (task #12369).
+- A failed dashboard dial no longer prints the bearer token into the run log
+  (task #12379); a scripted `init` with no terminal skips the prompts instead
+  of dying at them (task #12382); the boot banner names the model ids of the
+  profile actually in use (task #12381).
+
 ## 0.3.23
 
 No wrapper changes. Full notes in
