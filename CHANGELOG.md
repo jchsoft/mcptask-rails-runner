@@ -5,6 +5,37 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.26
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.26](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.26).
+
+**Upgrading takes two commands again.** `mcptask_runner update --self`
+replaces the binary; then a bare `mcptask_runner update` in any one project on
+the host, because the bundled `pr` skill gained the review commands. Run it
+while no runner is working that checkout.
+
+Binary changes carried by this version:
+
+- **Auto-squash asks the git host whether its checks passed before merging.**
+  `mcptask_runner pr checks <n>` sits between the local `bin/ci` gate and the
+  merge: SUCCESS or NONE merge, FAILED ends `ci_failed` with the PR left open,
+  IN_PROGRESS waits (bounded). A green local gate is no longer permission to
+  merge; `status_detail` in the result marker says which verdict applied
+  (task #12425, found on the real Bitbucket verification of #12365).
+- **The review executors speak `mcptask_runner pr` only.** `pr list --open`
+  and `pr reviews <n>` (verdicts and inline notes, on GitHub and Bitbucket)
+  replaced the last `gh` calls in any prompt the runner composes (task #12420).
+- **`init --home-dir` re-roots the Bitbucket credential** like the mcptask
+  token, and a re-run on a Bitbucket project says whether it left the
+  credential alone and which variables it wanted (task #12424).
+- **Run records say how the attempt ended.** `final_status` in
+  `log/runs/run_*.json` carries the verdict (`success`, `ci_failed`,
+  `merge_unverified`, …) instead of repeating `processing` (task #12426).
+- **A close code the server sent is logged even when the write failure is
+  noticed first**; the reader's account gets its own line when the reconnect
+  notice already went out (task #12421).
+
 ## 0.3.25
 
 No wrapper changes. Full notes in
