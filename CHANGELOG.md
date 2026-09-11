@@ -5,6 +5,52 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.25
+
+No wrapper changes. Full notes in
+[mcptask-releases v0.3.25](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.25).
+
+**Upgrading takes two commands again.** `mcptask_runner update --self`
+replaces the binary; then a bare `mcptask_runner update` in any one project on
+the host, because this version changes the installed data pack: the `pr` skill
+is a new file, the baseline permissions are now split per git host, `ci_wait`
+reads a new summary shape, and the test-lock helpers changed how a stale lock
+is decided. Run it while no runner is working that checkout — the new files
+would otherwise land inside somebody's task commit.
+
+Binary changes carried by this version:
+
+- **Bitbucket Cloud projects can be driven.** `git_host: bitbucket` selects a
+  REST API 2.0 adapter; `init` derives the host from the origin remote and
+  `--git-host` overrides it. Credentials are `BITBUCKET_ACCESS_TOKEN` (Bearer)
+  or `BITBUCKET_EMAIL` + `BITBUCKET_API_TOKEN` (Basic), written by `init` to
+  `~/.mcptask_env.d/bitbucket_credentials` without clobbering; app passwords
+  are refused by name (story #12361, tasks #12362, #12363).
+- **Pull requests go through `mcptask_runner pr create|list|view|merge|checks`**
+  on every host, with one JSON object on stdout. The prompt no longer names
+  `gh`; a bundled skill `pr` carries the commands; the PR number reaches the
+  card and the merge verification from that JSON on all three harnesses. The
+  `gh` and github.com approvals are installed only into a GitHub project, the
+  Bitbucket ones only into a Bitbucket one; the `.github` PR template default
+  applies to GitHub alone (task #12364). Conformance drives a scripted
+  Bitbucket host in manual and auto-squash (task #12365). Verification on a
+  real Bitbucket workspace is still pending.
+- **An API refusal is named instead of retried** — a retired model, a signed-out
+  CLI or a hard usage cap ends the run under `api_error` with the CLI's own
+  words, on Claude Code, Codex and OpenCode alike, instead of three marker
+  retries and an empty bug piece (tasks #12405, #12406, #11850, #12417).
+- **The test lock is stale only when nothing it stands for is alive.** The
+  15-minute age rule and the 10-second fuse are gone; `test_lock status` says
+  which case a lock is in (tasks #11852, #12402); the lock guard no longer
+  refuses a command that merely names a test run (task #11674).
+- **`/ci-runner` reads a `bin/ci` that prints per-step lines and no summary
+  block**, such as a stock Rails 8.1 `ActiveSupport::ContinuousIntegration`
+  (task #12413).
+- A `once_dry` run on a project with no assigned work reports an empty queue
+  instead of filing a bug (task #12407); the stress sweep names orphans that
+  ended themselves (task #12403); the stall watchdog no longer holds the
+  footer for a whole interval (task #12401).
+
 ## 0.3.24
 
 No wrapper changes. Full notes in
