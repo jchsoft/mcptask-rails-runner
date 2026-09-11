@@ -5,6 +5,46 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## 0.3.27
+
+Full binary notes in
+[mcptask-releases v0.3.27](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.27).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the
+binary; then a bare `mcptask_runner update` in any one project on the host,
+because the bundled `pr` skill and the permission baseline both changed. Run it
+while no runner is working that checkout.
+
+Wrapper changes:
+
+- **`mcptask_runner:install` forwards `--cli` and `--git-host`.** Either as
+  rake args — `rake "mcptask_runner:install[--cli codex,--git-host bitbucket]"` —
+  or as `CLI=codex GIT_HOST=bitbucket rake mcptask_runner:install`; env wins on
+  a tie. `update` takes no flags; re-run `install` to change them. A project
+  without a `harness:` line is refused by name, and `mcptask_runner:update`
+  writes `harness: claude` once for a legacy install so it gets through.
+
+Binary changes carried by this version:
+
+- **GitLab is a third git host**, driven through the `glab` CLI, which holds
+  its own login — nothing for the runner to store. gitlab.com is derived from
+  the origin; a self-managed instance sets `git_host: gitlab`. `pr checks`
+  prints one row per merge request because GitLab publishes one pipeline
+  status. Verified in manual and auto-squash mode on a real gitlab.com project
+  (story #12448).
+- **`mcptask_runner` is on the child's PATH on every project.** Until now only
+  projects with this gem could reach it from inside a task, through Bundler's
+  shim; a project without the gem got `exit 127` on every `mcptask_runner pr`
+  call (task #12456).
+- **A failing `gh` or `glab` repeats what the CLI said** instead of a bare
+  `exit status 1` (task #12454).
+- **A machine's own pull-request skill no longer outranks the runner.** The
+  create step now claims the words "create a pull request"; the stale
+  `Skill(pull-request-creator)` approval left the permission baseline
+  (task #12455).
+- **Adoption works on an rbenv, asdf or mise host** — the bundled gem is found
+  through the project's Ruby, not only through `GEM_HOME` (task #12435).
+
 ## 0.3.26
 
 No wrapper changes. Full notes in
