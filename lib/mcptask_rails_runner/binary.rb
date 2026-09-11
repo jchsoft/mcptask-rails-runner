@@ -132,6 +132,39 @@ module McptaskRailsRunner
       Kernel.exec(install!, *args)
     end
 
+    # Flags `mcptask_runner init` consumes in one form or another, paired with the
+    # env-var name each is read under on the rake side. The dash in `--git-host`
+    # would be stripped by `.delete_prefix` and lost by `.upcase` (`GIT-HOST`
+    # is not what anyone writes), so the substitution is explicit.
+    INIT_FLAGS = {
+      "--cli" => "CLI",
+      "--git-host" => "GIT_HOST"
+    }.freeze
+
+    # Env comes first so it wins on tie: the rake args baked into a Procfile or
+    # a CI step are the ones harder to override, so they are the ones we keep
+    # second and let the developer's shell environment silence.
+    def forwarded_init_flags(rake_args, env = ENV)
+      raw = rake_args.to_a.flat_map { |a| a.to_s.split(",") }.map(&:strip).reject(&:empty?)
+      from_rake = raw.flat_map { |token| token.split(/\s+/) }
+
+      from_env = []
+      INIT_FLAGS.each do |flag, var|
+        value = env[var]
+        from_env << flag << value if value && !value.empty?
+      end
+
+      # Drop rake-side flags the env already answered — env wins on a tie. The
+      # check is on the flag name alone: if `--cli` came from the env, the rake
+      # side's `--cli <value>` (whatever value it carries) is overridden by it.
+      rake_flags = from_env.each_slice(2).map(&:first).to_set
+      remaining_rake = from_rake.each_slice(2).reject do |pair|
+        pair.size == 2 && rake_flags.include?(pair.first)
+      end.flatten
+
+      (from_env + remaining_rake)
+    end
+
     # What the installed copy reports about itself, or nil when there is none —
     # or when it cannot be asked, which a stray file at that path cannot be.
     #

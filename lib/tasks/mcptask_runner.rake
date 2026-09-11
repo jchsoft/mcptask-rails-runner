@@ -15,9 +15,22 @@
 require "mcptask_rails_runner"
 
 namespace :mcptask_runner do
+  # `init` and `update` take flags the harness choice and git host depend on
+  # (--cli <name>, --git-host <name>). Forward everything the rake caller passed
+  # after the rake args so a Codex/OpenCode or Bitbucket user has a documented
+  # path through the gem:
+  #
+  #   bundle exec rake "mcptask_runner:install[--cli codex]"
+  #   bundle exec rake "mcptask_runner:install[--cli codex,--git-host bitbucket]"
+  #   CLI=codex GIT_HOST=bitbucket bundle exec rake mcptask_runner:install
+  #
+  # Anything else (`update`, the manual/auto tasks) keeps its 1:1 delegation so
+  # a flag the binary does not know about surfaces as a real error from it.
   desc "Install skills, permissions, token and scheduled job into this project"
-  task :install do
-    McptaskRailsRunner::Binary.exec_installed!("init")
+  task :install, [:args] do |_t, args|
+    McptaskRailsRunner::Binary.exec_installed!(
+      "init", *McptaskRailsRunner::Binary.forwarded_init_flags(args, ENV)
+    )
   end
 
   desc "Refresh bundled skills and helpers"
