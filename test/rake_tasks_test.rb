@@ -56,18 +56,76 @@ class RakeTasksTest < Minitest::Test
   # install and update are the two tasks that generate the scheduled job, and
   # the job runs whichever binary generated it. Running the copy inside the gem
   # would point it at a directory the next `bundle update` deletes.
-  INSTALLING_DELEGATIONS = {
-    "mcptask_runner:install" => %w[init],
-    "mcptask_runner:update" => %w[update]
-  }.freeze
+  def test_install_runs_the_installed_binary
+    @rake["mcptask_runner:install"].invoke
 
-  INSTALLING_DELEGATIONS.each do |task_name, argv|
-    define_method("test_#{task_name.tr(':', '_')}_runs_the_installed_binary") do
-      @rake[task_name].invoke
+    assert_equal %w[init], @installed_calls.last
+    assert_empty @calls, "install ran the binary inside the gem"
+  end
 
-      assert_equal argv, @installed_calls.last
-      assert_empty @calls, "#{task_name} ran the binary inside the gem"
+  def test_install_passes_cli_flag_from_rake_args
+    @rake["mcptask_runner:install"].invoke("--cli codex")
+
+    assert_equal %w[init --cli codex], @installed_calls.last
+  end
+
+  def test_install_passes_cli_and_git_host_from_rake_args
+    @rake["mcptask_runner:install"].invoke("--cli codex,--git-host bitbucket")
+
+    assert_equal %w[init --cli codex --git-host bitbucket], @installed_calls.last
+  end
+
+  def test_install_passes_cli_from_env_when_set
+    with_env("CLI" => "opencode") do
+      @rake["mcptask_runner:install"].invoke
     end
+
+    assert_equal %w[init --cli opencode], @installed_calls.last
+  end
+
+  def test_install_passes_git_host_from_env_when_set
+    with_env("GIT_HOST" => "bitbucket") do
+      @rake["mcptask_runner:install"].invoke
+    end
+
+    assert_equal %w[init --git-host bitbucket], @installed_calls.last
+  end
+
+  def test_install_env_wins_over_rake_args
+    with_env("CLI" => "opencode") do
+      @rake["mcptask_runner:install"].invoke("--cli codex")
+    end
+
+    assert_equal %w[init --cli opencode], @installed_calls.last
+  end
+
+  def test_install_ignores_unrelated_env_vars
+    with_env("CLI" => "opencode", "FOO" => "bar") do
+      @rake["mcptask_runner:install"].invoke
+    end
+
+    assert_equal %w[init --cli opencode], @installed_calls.last
+  end
+
+  def test_install_passes_no_flags_when_both_are_empty
+    @rake["mcptask_runner:install"].invoke(nil)
+
+    assert_equal %w[init], @installed_calls.last
+  end
+
+  def test_update_runs_the_installed_binary
+    @rake["mcptask_runner:update"].invoke
+
+    assert_equal %w[update], @installed_calls.last
+    assert_empty @calls, "update ran the binary inside the gem"
+  end
+
+  def with_env(values)
+    saved = values.to_h { |k, _| [k, ENV[k]] }
+    values.each { |k, v| ENV[k] = v }
+    yield
+  ensure
+    saved.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
   end
 
   def test_manual_story_passes_id

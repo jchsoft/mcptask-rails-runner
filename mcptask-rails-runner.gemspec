@@ -8,10 +8,12 @@ Gem::Specification.new do |spec|
   spec.authors = ["Josef Chmel"]
   spec.email = ["info@jchsoft.cz"]
 
-  spec.summary = "mcptask.online autonomous runner for Rails apps"
+  spec.summary = "mcptask.online autonomous runner for Rails apps (drives Claude Code, Codex CLI or OpenCode)"
   spec.description = "Thin Rails wrapper around the mcptask_runner Go binary. " \
                      "Ships the platform-specific binary inside the gem and exposes " \
-                     "the same rake tasks as the legacy mcptask_runner gem, delegating 1:1 to the CLI."
+                     "the same rake tasks as the legacy mcptask_runner gem, delegating 1:1 to the CLI. " \
+                     "Drives Claude Code, Codex CLI or OpenCode — pick one with `mcptask_runner:install[--cli <name>]`. " \
+                     "Works with GitHub and Bitbucket Cloud repos (`--git-host <name>`)."
   spec.homepage = "https://github.com/jchsoft/mcptask-rails-runner"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0"

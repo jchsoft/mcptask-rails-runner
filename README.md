@@ -31,7 +31,7 @@ with an older one.
 ## Requirements
 
 - Ruby >= 3.0, Rails >= 6.0
-- [Claude Code](https://claude.com/claude-code) CLI
+- One of [Claude Code](https://claude.com/claude-code), [Codex CLI](https://github.com/openai/codex) or [OpenCode](https://opencode.ai), signed in by the machine owner — picked per project at install time (`--cli` below; Codex and OpenCode need their own login on top of the runner account)
 - An mcptask.online account
 
 ## Installation
@@ -71,15 +71,38 @@ keeps working but stops recording what it ran. The regenerated one execs
 Every `rake mcptask_runner:*` invocation and shell alias keeps working
 unchanged. Your existing
 `config/mcptask_runner.yml`, `.mcp.json` and `.claude/` setup are read by the
-Go binary as-is. The only legacy task without a counterpart is
+Go binary as-is — with one exception: a project without a `harness:` line is
+now refused by name (no silent default), and `mcptask_runner:update` will write
+`harness: claude` once for a legacy `.mcp.json`-style install so the host gets
+through the gate on the next run. The only legacy task without a counterpart is
 `mcptask_runner:prepare:permissions` — permission sync is part of
 `mcptask_runner:install` now.
+
+### Picking the coding CLI and the git host
+
+`mcptask_runner:install` delegates to `mcptask_runner init`, which takes the
+harness choice and the git host as flags. Both reach the binary through the
+rake task in two equivalent ways — choose whichever fits how the command is
+invoked:
+
+```bash
+# Square-bracket form — works inside a Procfile or a CI step:
+bundle exec rake "mcptask_runner:install[--cli codex]"
+bundle exec rake "mcptask_runner:install[--cli codex,--git-host bitbucket]"
+
+# Environment form — what an operator types at the shell, where a one-line
+# override (CLI=opencode rake …) is easier than retyping the rake args:
+CLI=codex GIT_HOST=bitbucket bundle exec rake mcptask_runner:install
+```
+
+Env wins on a tie. `update` does not take flags — re-run `install` with the
+ones you want.
 
 ## Tasks
 
 | Task | Delegates to |
 |---|---|
-| `mcptask_runner:install` | `mcptask_runner init` (from `~/.mcptask/bin`) |
+| `mcptask_runner:install` | `mcptask_runner init [--cli <name>] [--git-host <name>]` (from `~/.mcptask/bin`) |
 | `mcptask_runner:update` | `mcptask_runner update` (from `~/.mcptask/bin`) |
 | `mcptask_runner:bug_report` | `mcptask_runner bug-report` |
 | `mcptask_runner:version` | `mcptask_runner version` |
