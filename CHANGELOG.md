@@ -5,6 +5,32 @@ entries below describe wrapper changes only. Binary changes are listed in the
 [mcptask-releases](https://github.com/jchsoft/mcptask-releases/releases)
 release notes for the same tag.
 
+## Unreleased
+
+Nothing yet.
+
+## 0.3.28
+
+Full binary notes in
+[mcptask-releases v0.3.28](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.28).
+
+**Upgrading is one command plus a restart.** `mcptask_runner update --self`
+replaces the binary. A runner idling in a wait keeps the old one until its
+next task or a restart (`launchctl kill SIGTERM` + `kickstart` on macOS), so
+restart it. No bundled asset changed; no bare `update` is needed.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- **A job started with `ignore_quota: true` now wakes up on an assignment.**
+  Such a job never read its user profile, so its event stream had no user id,
+  ignored every assignment broadcast and logged `Assignment event ignored:
+  this runner does not know its own user id yet` on each one, all day, while
+  the card on mcptask.online named the user. The profile is now read on every
+  start; `ignore_quota` only decides whether the working-hours flag is applied
+  (task #12473).
+
 ## 0.3.27
 
 Full binary notes in
