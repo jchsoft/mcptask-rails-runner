@@ -9,6 +9,41 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.29
+
+Full binary notes in
+[mcptask-releases v0.3.29](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.29).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the
+binary; then a bare `mcptask_runner update` in every project on the host,
+because the bundled `pr` skill changed — it now tells the agent to write the
+pull-request body under the project template’s own headings. Run it while no
+runner is working that checkout. A runner idling in a wait keeps the old
+binary until its next task or a restart (`launchctl kill SIGTERM` +
+`kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- **A stalled task really does come back on the strongest model.** The loop
+  remembers what stalled today and on which tier: a piece that stalled on a
+  weaker tier runs on genius the next time triage picks it, whatever triage
+  recommends, and a piece that stalls *on* genius goes on the skip list for
+  the rest of the day, like a failed one (task #12613).
+- **A blocked subtask no longer costs a session to discover.** Every prompt
+  that walks a Story’s subtasks excludes blocked ones where the selection is
+  made, using the server’s machine fields (`is_blocked`, `task_state_code`,
+  `blocked_by`, …) where they are sent. A Story whose remaining subtasks are
+  all blocked ends the story loop with `no_more_tasks` and a message naming
+  the pieces and their blockers (task #12568).
+- **`pr create` refuses a description that ignores the project’s template.**
+  It reads the template the prompt names — GitHub’s or GitLab’s convention,
+  or `pr_template: path:` — and refuses a body missing any heading the
+  template does not mark `(optional)`, before the host is asked. The refusal
+  names the missing sections and prints the template’s skeleton (task
+  #12599).
+
 ## 0.3.28
 
 Full binary notes in
