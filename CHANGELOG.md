@@ -14,7 +14,7 @@ Nothing yet.
 Full binary notes in
 [mcptask-releases v0.3.31](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.31).
 
-**Upgrading is one command.** `mcptask_runner update --self` replaces the binary; the bundled `.claude/` assets did not change, so no per-project `update` is needed. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+**Upgrading is two commands this once.** `mcptask_runner update --self` replaces the binary. Then a bare `mcptask_runner update` once in every project on the host (it also stamps the machine's helper home) — not because the bundled `.claude/` assets changed (they did not), but because this tag starts recording which version installed them, and until that record exists every run start prints a WARN and leaves the files alone; see "The installed skills and helpers follow the binary by themselves" below. From then on installing a new binary is enough. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
 
 No wrapper changes.
 
