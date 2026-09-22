@@ -89,7 +89,7 @@ jobs:
     # that touch lib/mcptask_rails_runner/version.rb go straight to main and
     # carry their own CHANGELOG rewrite.
     name: lib/ changes carry a CHANGELOG line
-    if: github.event_name == "pull_request"
+    if: github.event_name == pull_request
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
