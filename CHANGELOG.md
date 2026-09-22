@@ -9,6 +9,25 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.31
+
+Full binary notes in
+[mcptask-releases v0.3.31](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.31).
+
+**Upgrading is one command.** `mcptask_runner update --self` replaces the binary; the bundled `.claude/` assets did not change, so no per-project `update` is needed. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- The installed skills and helpers follow the binary by themselves
+- Run logs and bug-report attachments no longer carry escape codes
+- The release is one script
+- A child that forks subagents in the foreground is no longer killed at five minutes
+- A transient 500 from the API no longer ends the day
+- A running runner takes up a newly installed binary between tasks
+- The story loop asks the server which subtask is next
+
 ## 0.3.30
 
 Full binary notes in
