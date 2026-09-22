@@ -9,6 +9,39 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.30
+
+Full binary notes in
+[mcptask-releases v0.3.30](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.30).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the
+binary; then a bare `mcptask_runner update` in every project on the host,
+because the bundled `pr` skill changed — it now names the shape of the task
+link a pull request must carry and tells the agent to copy the one the
+CREATE PULL REQUEST step prints. Run it while no runner is working that
+checkout. A runner idling in a wait keeps the old binary until its next task
+or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then
+`kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- **`init` can be told “no scheduled job”.** The scheduled-job prompt offers
+  `3) none — no scheduled job, start the runner by hand`, and a provisioning
+  script says the same with `--mode none`; any other answer than 1 or 2 used
+  to fail an install whose every earlier step had succeeded (task #12790).
+- **The end of `init` can be read without reading every word.** On a
+  terminal each `[Installer]` line is painted by what it is — paths,
+  commands and values keep the terminal’s colour, explanations are dimmed,
+  the things to do stand out.
+- **A pull request without a task link is refused where no template would
+  catch it.** On a project with no pull-request template `pr create` refuses
+  a description that carries no `https://mcptask.online/<account>/tasks/<id>`
+  link, before the host is asked, naming the shape; the CREATE PULL REQUEST
+  step prints the task’s link finished. A project with a template is
+  unchanged (task #12865).
+
 ## 0.3.29
 
 Full binary notes in
