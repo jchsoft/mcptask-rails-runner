@@ -79,3 +79,28 @@ jobs:
                      raise unless e.message.include?("MCPTASK_RUNNER_BIN")
                      puts "fallback gem raises instructive error - OK"
                    end'
+
+  changelog:
+    # A change under lib/ is a change the next release ships, and the line that
+    # describes it has to be written while the change is being made — the
+    # release script (bin/release in mcptask_go_runner, task #12464) only
+    # notices a missing line at the tag, which is where the memory of what the
+    # change was for is already gone. Pull requests only: the release commits
+    # that touch lib/mcptask_rails_runner/version.rb go straight to main and
+    # carry their own CHANGELOG rewrite.
+    name: lib/ changes carry a CHANGELOG line
+    if: github.event_name == "pull_request"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: refuse a lib/ change with no CHANGELOG.md in the same pull request
+        run: |
+          changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          echo "$changed"
+          if echo "$changed" | grep -q "^lib/" && ! echo "$changed" | grep -qx "CHANGELOG.md"; then
+            echo "::error::these lib/ files changed but CHANGELOG.md did not — write the line under "## Unreleased":"
+            echo "$changed" | grep "^lib/"
+            exit 1
+          fi
