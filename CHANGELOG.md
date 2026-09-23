@@ -9,6 +9,23 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.32
+
+Full binary notes in
+[mcptask-releases v0.3.32](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.32).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A second `bundle update` in one day is taken up too ([#12905](https://mcptask.online/jchsoft/tasks/12905))
+- A refused push ends the task; it is no longer worked around ([#12903](https://mcptask.online/jchsoft/tasks/12903))
+- An expired trial stops the runner with one line instead of spinning ([#12953](https://mcptask.online/jchsoft/tasks/12953), [#12967](https://mcptask.online/jchsoft/tasks/12967))
+- A fan-out of subagents over one file is no longer killed as a loop ([#12966](https://mcptask.online/jchsoft/tasks/12966))
+- `ollama launch` works again, and a CLI that cannot start says so ([#12965](https://mcptask.online/jchsoft/tasks/12965))
+
 ## 0.3.31
 
 Full binary notes in
