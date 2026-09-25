@@ -7,9 +7,31 @@ release notes for the same tag.
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.3.33
+
+Full binary notes in
+[mcptask-releases v0.3.33](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.33).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (baseline_permissions.json). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
 - `mcptask_runner:install` and `:update` (through the binary, from the next
   release) write `~/.mcptask_env.d/runner_path`, putting `~/.mcptask/bin` on
   PATH for terminals and coding CLIs started by hand. README says so.
+
+Binary changes carried by this version:
+
+- A run the host refused is filed as a bug, not set aside quietly ([#13139](https://mcptask.online/jchsoft/tasks/13139))
+- Test and CI logs stay readable when reads outside the project are blocked ([#13137](https://mcptask.online/jchsoft/tasks/13137))
+- The end of the workday stops the next task, not just an empty queue ([#13076](https://mcptask.online/jchsoft/tasks/13076))
+- Auto-squash no longer merges a pull request that no CI has passed ([#13089](https://mcptask.online/jchsoft/tasks/13089))
+- A crash on a customer's runner files a bug piece in the customer's own project ([#13090](https://mcptask.online/jchsoft/tasks/13090))
+- `mcptask_runner` on PATH for a coding CLI you start yourself ([#13123](https://mcptask.online/jchsoft/tasks/13123))
+- A scheduled job set up through npx no longer points into npm's cache ([#13095](https://mcptask.online/jchsoft/tasks/13095))
+- Elapsed times count the hours the Mac slept ([#13132](https://mcptask.online/jchsoft/tasks/13132))
+- A piece name with braces no longer stops the day ([#13121](https://mcptask.online/jchsoft/tasks/13121))
+- Adopting the bundle's runner now updates the binary the scheduled job runs ([#13133](https://mcptask.online/jchsoft/tasks/13133))
 
 ## 0.3.32
 
