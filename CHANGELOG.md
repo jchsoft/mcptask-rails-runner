@@ -7,7 +7,9 @@ release notes for the same tag.
 
 ## Unreleased
 
-Nothing yet.
+- `mcptask_runner:install` and `:update` (through the binary, from the next
+  release) write `~/.mcptask_env.d/runner_path`, putting `~/.mcptask/bin` on
+  PATH for terminals and coding CLIs started by hand. README says so.
 
 ## 0.3.32
 

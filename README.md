@@ -139,6 +139,14 @@ through PATH: the binary shares its name with the legacy tooling, and a PATH
 lookup could pick up the wrong install. `MCPTASK_RUNNER_BIN` overrides both,
 and install leaves `~/.mcptask/bin` untouched while it is set.
 
+The gem ships no `mcptask_runner` executable of its own. What puts the name on
+PATH for a person — or a coding CLI they start by hand, which the `pr` skill
+asks to run `mcptask_runner pr …` — is `~/.mcptask_env.d/runner_path`, written
+by install and update from the binary itself: it prepends `~/.mcptask/bin`, and
+the shell startup file install configured sources it. Open a new terminal after
+an install or update for it to apply. The wrapper still does not look the
+binary up through PATH.
+
 ## Development
 
 ```bash
