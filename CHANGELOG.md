@@ -9,6 +9,21 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.36
+
+Full binary notes in
+[mcptask-releases v0.3.36](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.36).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A feature catalog the website renders ([Task #13451](https://mcptask.online/jchsoft/tasks/13451))
+- Every release carries `catalog.yml` as an asset ([#13454](https://mcptask.online/jchsoft/tasks/13454))
+- The catalog and the code may not disagree ([Task #13453](https://mcptask.online/jchsoft/tasks/13453))
+
 ## 0.3.35
 
 Full binary notes in
