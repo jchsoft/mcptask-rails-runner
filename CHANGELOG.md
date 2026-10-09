@@ -9,6 +9,22 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.39
+
+Full binary notes in
+[mcptask-releases v0.3.39](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.39).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A task can no longer stop the runner from the inside
+- A LaunchAgent rewritten by plutil is carried forward, and its start is read ([#13593](https://mcptask.online/jchsoft/tasks/13593))
+- An idle runner's card comes back after a server restart ([#13589](https://mcptask.online/jchsoft/tasks/13589))
+- A quota-endpoint outage during a task no longer ends the run
+
 ## 0.3.38
 
 Full binary notes in
