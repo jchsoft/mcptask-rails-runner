@@ -9,6 +9,20 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.38
+
+Full binary notes in
+[mcptask-releases v0.3.38](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.38).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A crash, logout or reboot during the day no longer costs the rest of it
+- The project's `@next` URI matches the server's template ([#13568](https://mcptask.online/jchsoft/tasks/13568))
+
 ## 0.3.37
 
 Full binary notes in
