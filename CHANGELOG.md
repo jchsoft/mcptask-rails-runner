@@ -9,6 +9,25 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.41
+
+Full binary notes in
+[mcptask-releases v0.3.41](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.41).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A Story merges on a repository that allows squash merges only ([#13718](https://mcptask.online/jchsoft/tasks/13718))
+- A piece assigned to somebody else is never worked (task #13635)
+- An operator's stop is no longer swallowed after a refused self-operation (task #13636)
+- A dashboard socket lost twice in 30 s is redialled (task #13639)
+- The STORY MERGE step accepts a squash on a squash-only repository (task #13725)
+- The log names the method a merge used; the Story merge joins the bad-day test ([#13731](https://mcptask.online/jchsoft/tasks/13731))
+- Killing a child waits until its whole process group is gone (task #13730)
+
 ## 0.3.40
 
 Full binary notes in
