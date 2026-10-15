@@ -9,6 +9,22 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.44
+
+Full binary notes in
+[mcptask-releases v0.3.44](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.44).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A CLI that was never signed in is waited out too ([#13842](https://mcptask.online/jchsoft/tasks/13842))
+- A quota endpoint that does not answer no longer ends the working day
+- Stopping the runner reaches a quota request that hangs
+- Stop and Start from the dashboard ([#13840](https://mcptask.online/jchsoft/tasks/13840))
+
 ## 0.3.43
 
 Full binary notes in
