@@ -9,6 +9,21 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.47
+
+Full binary notes in
+[mcptask-releases v0.3.47](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.47).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- workflow reads reviews on GitLab and Bitbucket too (#14053)
+- A machine that refuses the work is waited out, not ended on
+- A read of the runner's own source is no longer refused (#14072)
+
 ## 0.3.46
 
 Full binary notes in
