@@ -9,6 +9,42 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.49
+
+Full binary notes in
+[mcptask-releases v0.3.49](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.49).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (helpers/check_test_lock, skills/test-runner/SKILL.md). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- `init` asks which project this is
+- `init` switches the job on
+- The install's task logs its progress without a refusal
+- `init` stops asking what it can find out
+- `init` keeps its details in a log
+- A CLI that exits 127 is reported as not found
+- A bug report attaches only the current run's record
+- The story sweep rides out a dropped connection
+- `pr merge` carries a tree-identical head's statuses to the merge commit
+- `init` recognises an Xcode project
+- Two reports stop blaming the child for what happened outside it
+- An mcptask.online outage no longer ends the day
+- A triage that cannot reach its tools is waited out
+- A panic in a background goroutine is reported like a loop panic
+- The daily loop keeps working when a bug report is refused
+- An urgent bug on a dirty branch waits for a person instead of ending the run
+- A usage limit that outlasts the runner's waits no longer ends the day
+- A report no longer lists a settings file the project never had
+- One host refusal is one bug piece a day
+- Git credentials origin refuses are waited out, not filed
+- A refused task waits for a person, and the child no longer looks for a way in
+- A step only a person can take becomes that person's task
+- A Stop from the card during a Story's merge pauses the runner, not ends it
+- The banner says where the runner's own failures go; a refused card is said in the log
+
 ## 0.3.48
 
 Full binary notes in
