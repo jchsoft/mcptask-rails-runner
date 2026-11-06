@@ -13,15 +13,45 @@ class PaletteTest < Minitest::Test
     paint = Palette.for(StringIO.new, env: {})
 
     refute paint.enabled?
-    assert_equal "installed", paint.ok("installed")
-    assert_equal "replaced", paint.changed("replaced")
+    assert_equal "✓ installed", paint.done("installed")
+    assert_equal "! replaced", paint.warning("replaced")
+    assert_equal "✗ failed", paint.refusal("failed")
   end
 
   def test_a_terminal_gets_the_colour_the_meaning_calls_for
     paint = Palette.for(FakeTTY.new, env: {})
 
-    assert_equal "\e[32minstalled\e[0m", paint.ok("installed")
-    assert_equal "\e[33mreplaced\e[0m", paint.changed("replaced")
+    assert_equal "\e[32m✓ installed\e[0m", paint.done("installed")
+    assert_equal "\e[33m! replaced\e[0m", paint.warning("replaced")
+    assert_equal "\e[31m✗ failed\e[0m", paint.refusal("failed")
+  end
+
+  # The Story's decided codes: orange only when the terminal says it has 256
+  # colours, else the plain yellow every terminal has.
+  def test_orange_when_the_terminal_reports_256_colours
+    paint = Palette.for(FakeTTY.new, env: { "TERM" => "xterm-256color" })
+
+    assert_equal "\e[38;5;208m! replaced\e[0m", paint.warning("replaced")
+  end
+
+  def test_orange_when_colorterm_is_set
+    paint = Palette.for(FakeTTY.new, env: { "COLORTERM" => "truecolor" })
+
+    assert_equal "\e[38;5;208m! replaced\e[0m", paint.warning("replaced")
+  end
+
+  def test_an_empty_colorterm_and_a_16_colour_term_get_yellow
+    paint = Palette.for(FakeTTY.new, env: { "COLORTERM" => "", "TERM" => "xterm" })
+
+    assert_equal "\e[33m! replaced\e[0m", paint.warning("replaced")
+  end
+
+  def test_the_weights
+    paint = Palette.for(FakeTTY.new, env: {})
+
+    assert_equal "\e[1mhead\e[0m", paint.bold("head")
+    assert_equal "\e[2mnote\e[0m", paint.dim("note")
+    assert_equal "head", Palette.for(StringIO.new, env: {}).bold("head")
   end
 
   def test_no_color_silences_a_terminal
@@ -65,6 +95,6 @@ class PaletteTest < Minitest::Test
   end
 
   def test_an_empty_string_is_never_wrapped
-    assert_equal "", Palette.for(FakeTTY.new, env: {}).ok("")
+    assert_equal "", Palette.for(FakeTTY.new, env: {}).bold("")
   end
 end

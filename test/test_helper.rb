@@ -18,7 +18,7 @@ module ColourEnv
   # Runs the block with the colour levers cleared, so a variable exported in the
   # developer's own shell cannot decide whether these tests pass.
   def with_colour_env(overrides = {})
-    names = %w[MCPTASK_RUNNER_COLOR NO_COLOR TERM]
+    names = %w[MCPTASK_RUNNER_COLOR NO_COLOR TERM COLORTERM]
     saved = names.to_h { |name| [name, ENV[name]] }
     names.each { |name| ENV.delete(name) }
     overrides.each { |name, value| ENV[name] = value }

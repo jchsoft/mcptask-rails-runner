@@ -85,36 +85,69 @@ module McptaskRailsRunner
     # Newest wins, and says so. A host with several projects has several gem
     # versions and one installed binary, so a project pinning an older gem must
     # not quietly drag the machine's runner backwards.
+    #
+    # What it prints is the first line of init's screen, in init's line kinds:
+    # done (green check), a warning the run goes on after (orange bang), or a
+    # refusal with the step to take (red cross), after which the error is still
+    # raised — the line is for the person, the exception is for the report.
     def install!(install_dir: INSTALL_DIR, gem_root: GEM_ROOT, out: $stdout)
       paint = Palette.for(out)
 
       override = ENV["MCPTASK_RUNNER_BIN"]
       unless override.nil? || override.empty?
-        out.puts paint.changed("[mcptask_runner] MCPTASK_RUNNER_BIN is set — running #{override} " \
+        out.puts paint.warning("MCPTASK_RUNNER_BIN is set — running #{override} " \
                                "and leaving #{installed_path(install_dir: install_dir)} alone.")
         return override
       end
 
-      source = bundled_path(gem_root: gem_root)
+      source = bundled_source(gem_root, out, paint)
       target = installed_path(install_dir: install_dir)
 
       existing = installed_version(target)
       if existing && existing > Gem::Version.new(VERSION)
-        out.puts paint.changed("[mcptask_runner] #{target} already holds #{existing}, which is newer than " \
+        out.puts paint.warning("#{display_path(target)} already holds #{existing}, which is newer than " \
                                "this gem's #{VERSION} — keeping it. Delete that file to install this " \
                                "gem's binary instead.")
         return target
       end
 
-      copy(source, target)
-      # Green when this leaves the machine where it already was — a first
-      # install, or the same version laid down again. Yellow when a binary the
-      # host was running has just been replaced, which is the one line of this
-      # command worth stopping on.
-      line = "[mcptask_runner] installed mcptask_runner #{VERSION} into #{target}" \
-             "#{existing ? " (replacing #{existing})" : ''}."
-      out.puts(existing && existing < Gem::Version.new(VERSION) ? paint.changed(line) : paint.ok(line))
+      copy_or_refuse(source, target, out, paint)
+      out.puts paint.done(installed_line(existing, install_dir))
       target
+    end
+
+    # The bundled binary, or the red line that says what to do about its absence
+    # and then the error itself.
+    def bundled_source(gem_root, out, paint)
+      bundled_path(gem_root: gem_root)
+    rescue Error
+      out.puts paint.refusal("mcptask_runner binary missing from this gem — run `bundle install` again, or " \
+                             "set MCPTASK_RUNNER_BIN to a binary from https://github.com/jchsoft/mcptask-releases.")
+      raise
+    end
+
+    def copy_or_refuse(source, target, out, paint)
+      copy(source, target)
+    rescue SystemCallError => e
+      out.puts paint.refusal("could not copy mcptask_runner into #{display_path(File.dirname(target))} " \
+                             "(#{e.message}) — make that directory writable, then run this task again.")
+      raise
+    end
+
+    # "installed" is what happened; "is already current" is what it was worth
+    # saying when the installed copy already held this version, which "replacing
+    # 0.3.49" with 0.3.49 never did.
+    def installed_line(existing, install_dir)
+      return "mcptask_runner #{VERSION} is already current" if existing == Gem::Version.new(VERSION)
+
+      line = "mcptask_runner #{VERSION} installed into #{display_path(install_dir)}"
+      existing ? "#{line} (was #{existing})" : line
+    end
+
+    # The home directory as ~, the way a person types it.
+    def display_path(path)
+      home = Dir.home
+      path == home || path.start_with?("#{home}#{File::SEPARATOR}") ? path.sub(home, "~") : path
     end
 
     # Replaces the current process, so the binary's exit code and signal
