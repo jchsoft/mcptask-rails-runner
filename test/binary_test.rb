@@ -7,6 +7,13 @@ require "stringio"
 class BinaryTest < Minitest::Test
   include ColourEnv
 
+  Palette = McptaskRailsRunner::Palette
+  VERSION = McptaskRailsRunner::VERSION
+  GREEN = Palette::GREEN
+  YELLOW = Palette::YELLOW
+  RED = Palette::RED
+  ORANGE = Palette::ORANGE
+
   def teardown
     ENV.delete("MCPTASK_RUNNER_BIN")
   end
@@ -164,24 +171,53 @@ class BinaryTest < Minitest::Test
 
   # --- what the operator sees ---
   #
-  # This is the first line of `rake mcptask_runner:update`, and everything after
-  # it comes from the Go binary, in colour. Grey in front of that wall reads as
-  # the least important thing on the screen, when it is the only line reporting
-  # that a binary was replaced.
+  # This is the first line of `rake mcptask_runner:install`, and what follows
+  # it is init's screen. It speaks init's line kinds: a green check for what is
+  # done, an orange bang for a warning the run goes on after, a red cross with
+  # the step to take for a refusal.
 
-  def test_a_first_install_says_in_green_that_nothing_was_displaced
+  def test_a_first_install_says_what_happened_in_green
     with_colour_env do
       Dir.mktmpdir do |root|
         out = FakeTTY.new
         install(install_dir: File.join(root, "installed"), gem_root: staged_gem(root), out: out)
 
-        assert_includes out.string, McptaskRailsRunner::Palette::GREEN
-        refute_includes out.string, McptaskRailsRunner::Palette::YELLOW
+        assert_equal "\e[32m✓ mcptask_runner #{VERSION} installed into #{File.join(root, 'installed')}\e[0m\n", out.string
       end
     end
   end
 
-  def test_replacing_the_binary_the_host_was_running_is_yellow
+  def test_the_home_directory_is_abbreviated
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        out = StringIO.new
+        home = File.join(root, "home")
+        Dir.stub(:home, home) do
+          install(install_dir: File.join(home, ".mcptask", "bin"), gem_root: staged_gem(root), out: out)
+        end
+
+        assert_equal "✓ mcptask_runner #{VERSION} installed into ~/.mcptask/bin\n", out.string
+      end
+    end
+  end
+
+  # Same version on both sides said "(replacing 0.3.49)" before, which says nothing.
+  def test_the_same_version_is_already_current
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        install_dir = File.join(root, "installed")
+        stub_installed(install_dir, VERSION)
+        out = StringIO.new
+
+        install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
+
+        assert_equal "✓ mcptask_runner #{VERSION} is already current\n", out.string
+        refute_includes out.string, "replacing"
+      end
+    end
+  end
+
+  def test_replacing_an_older_binary_is_done_and_names_the_old_version
     with_colour_env do
       Dir.mktmpdir do |root|
         install_dir = File.join(root, "installed")
@@ -190,15 +226,16 @@ class BinaryTest < Minitest::Test
 
         install(install_dir: install_dir, gem_root: staged_gem(root, body: "#!/bin/sh\necho bundled\n"), out: out)
 
-        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+        assert out.string.start_with?("#{GREEN}✓ mcptask_runner #{VERSION} installed into "), out.string
+        assert_includes out.string, "(was 0.1.0)"
       end
     end
   end
 
-  # Not what the operator asked for, so not green: the install they ran left the
+  # Not what the operator asked for, so not done: the install they ran left the
   # machine on a different version than the gem they ran it from.
-  def test_keeping_a_newer_binary_is_yellow
-    with_colour_env do
+  def test_keeping_a_newer_binary_is_an_orange_warning
+    with_colour_env("TERM" => "xterm-256color") do
       Dir.mktmpdir do |root|
         install_dir = File.join(root, "installed")
         stub_installed(install_dir, "9.9.9")
@@ -206,20 +243,56 @@ class BinaryTest < Minitest::Test
 
         install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
 
-        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+        assert out.string.start_with?("#{ORANGE}! "), out.string
+        assert_includes out.string, "9.9.9"
+        assert_includes out.string, "Delete that file"
       end
     end
   end
 
-  def test_the_env_override_notice_is_yellow_too
-    with_colour_env do
+  def test_the_env_override_notice_is_a_yellow_warning_on_a_16_colour_terminal
+    with_colour_env("TERM" => "xterm") do
       Dir.mktmpdir do |root|
         ENV["MCPTASK_RUNNER_BIN"] = "/opt/custom/mcptask_runner"
         out = FakeTTY.new
 
         install(install_dir: File.join(root, "installed"), gem_root: staged_gem(root), out: out)
 
-        assert_includes out.string, McptaskRailsRunner::Palette::YELLOW
+        assert out.string.start_with?("#{YELLOW}! MCPTASK_RUNNER_BIN is set"), out.string
+      end
+    end
+  end
+
+  def test_a_missing_binary_is_a_red_refusal_with_the_step_and_still_raises
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        out = FakeTTY.new
+
+        assert_raises(McptaskRailsRunner::Error) do
+          install(install_dir: File.join(root, "installed"), gem_root: File.join(root, "empty-gem"), out: out)
+        end
+
+        assert out.string.start_with?("#{RED}✗ "), out.string
+        assert_includes out.string, "bundle install"
+        assert_includes out.string, "MCPTASK_RUNNER_BIN"
+        assert_equal 1, out.string.lines.size, "the refusal is one line; the exception carries the detail"
+      end
+    end
+  end
+
+  def test_a_failed_copy_is_a_red_refusal_with_the_step_and_still_raises
+    with_colour_env do
+      Dir.mktmpdir do |root|
+        blocker = File.join(root, "installed")
+        File.write(blocker, "a file where the directory must be")
+        out = FakeTTY.new
+
+        assert_raises(SystemCallError) do
+          install(install_dir: blocker, gem_root: staged_gem(root), out: out)
+        end
+
+        assert out.string.start_with?("#{RED}✗ could not copy mcptask_runner "), out.string
+        assert_includes out.string, "run this task again"
       end
     end
   end
@@ -236,6 +309,26 @@ class BinaryTest < Minitest::Test
         install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
 
         refute_includes out.string, "\e["
+      end
+    end
+  end
+
+  def test_no_color_makes_a_terminal_plain_for_every_kind_of_line
+    with_colour_env("NO_COLOR" => "1") do
+      Dir.mktmpdir do |root|
+        install_dir = File.join(root, "installed")
+        newer = stub_installed(install_dir, "9.9.9")
+        out = FakeTTY.new
+
+        install(install_dir: install_dir, gem_root: staged_gem(root), out: out)
+        File.delete(newer)
+        assert_raises(McptaskRailsRunner::Error) do
+          install(install_dir: install_dir, gem_root: File.join(root, "empty-gem"), out: out)
+        end
+
+        refute_includes out.string, "\e["
+        assert_includes out.string, "! "
+        assert_includes out.string, "✗ "
       end
     end
   end

@@ -7,7 +7,14 @@ release notes for the same tag.
 
 ## Unreleased
 
-Nothing yet.
+**The gem's own line in `rake mcptask_runner:install` / `:update` now takes the shape of init's screen** (Story 14828). It is the first line of that screen, so it speaks the same line kinds, glyphs and codes as the Go binary's output after it:
+
+- `✓ mcptask_runner 0.3.50 installed into ~/.mcptask/bin` (green), with `(was 0.3.49)` when it replaced an older one, or `✓ mcptask_runner 0.3.49 is already current` when the installed copy already held this version. The old `installed ... (replacing 0.3.49)` with the same version on both sides said nothing.
+- `! ...` for a warning the run goes on after (`MCPTASK_RUNNER_BIN` is set, a newer binary is kept): orange `\e[38;5;208m` when `TERM` contains `256color` or `COLORTERM` is set, else yellow. These were yellow with no glyph.
+- `✗ ...` (red) with the step to take when the binary is missing from the gem or the copy fails; the error is still raised after the line.
+- The `[mcptask_runner]` prefix is gone, and the home directory is shown as `~`.
+- Colour only on a terminal, never with `NO_COLOR` non-empty; `MCPTASK_RUNNER_COLOR` keeps its meaning. With colour off the text is plain, glyphs included.
+- Task names and argument forms are unchanged, and so is how the binary is exec'd.
 
 ## 0.3.49
 
