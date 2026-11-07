@@ -7,6 +7,15 @@ release notes for the same tag.
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.3.50
+
+Full binary notes in
+[mcptask-releases v0.3.50](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.50).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (skills/mcptask-read/SKILL.md). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
 **The gem's own line in `rake mcptask_runner:install` / `:update` now takes the shape of init's screen** (Story 14828). It is the first line of that screen, so it speaks the same line kinds, glyphs and codes as the Go binary's output after it:
 
 - `✓ mcptask_runner 0.3.50 installed into ~/.mcptask/bin` (green), with `(was 0.3.49)` when it replaced an older one, or `✓ mcptask_runner 0.3.49 is already current` when the installed copy already held this version. The old `installed ... (replacing 0.3.49)` with the same version on both sides said nothing.
@@ -15,6 +24,26 @@ release notes for the same tag.
 - The `[mcptask_runner]` prefix is gone, and the home directory is shown as `~`.
 - Colour only on a terminal, never with `NO_COLOR` non-empty; `MCPTASK_RUNNER_COLOR` keeps its meaning. With colour off the text is plain, glyphs included.
 - Task names and argument forms are unchanged, and so is how the binary is exec'd.
+
+Binary changes carried by this version:
+
+- Re-check now: the card checks a host problem at once
+- Each token variable gets its own export file
+- A runner may now sit retrying instead of ending its day
+- `init` says whose role is missing, and where
+- The `mcptask-read` skill downloads attachments with the signed link only
+- `init` speaks in colour on a terminal
+- `init` runs in four sections, each with one green line
+- `update` speaks the same line kinds as `init`
+- The install has a bad day of its own
+- Every warning and refusal of `init` is a named exception, orange or red, with its step
+- An interrupted `init` continues at its last unanswered question
+- `init` on an installed project sums it up and asks one question
+- A kill never empties a file
+- `init` is tested through a real terminal
+- What `init` says before it has a screen is painted too
+- The scheduled job runs on the days you choose, and `--force` repairs an old one
+- The card carries the scheduled job's plan
 
 ## 0.3.49
 
