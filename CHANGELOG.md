@@ -9,6 +9,27 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.51
+
+Full binary notes in
+[mcptask-releases v0.3.51](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.51).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (baseline_permissions.json, skills/attach-pasted-image/SKILL.md, skills/mcptask-write/SKILL.md, skills/memory-search/SKILL.md, skills/pr/SKILL.md). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- Every variable the MCP configuration names is asked for, and named on the card
+- A project's own steps before and after every task
+- The scheduled run sees the tools your terminal sees
+- An install refused at the push recovers once write access is granted
+- A pull request that fell behind its base is updated, checked again and merged
+- `init` and `update` no longer undo a project's own changes
+- `init` on a bash host no longer cuts `~/.profile` off
+- A screenshot pasted into Claude Code can be attached to a task
+- A task whose whole change stays on the machine can be finished
+
 ## 0.3.50
 
 Full binary notes in
