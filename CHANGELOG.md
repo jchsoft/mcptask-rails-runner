@@ -9,6 +9,29 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.53
+
+Full binary notes in
+[mcptask-releases v0.3.53](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.53).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (skills/memory-search/SKILL.md). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- Start now on a runner waiting for the queue (#15160)
+- Optional `models.last_resort` level (#14990)
+- `init` and `update` start git less often (#15157)
+- memory-search skill: note IDs and ratings (#15148)
+- A machine that cannot start processes is one condition and one report
+- Claude Code 2.1.322's expired login waits on the card, and a refused triage keeps the CLI's words
+- A permission refusal from mcptask.online for one piece is not the machine's
+- A task that failed twice on genius gets one `last_resort` run (#14991)
+- The card says when a run is the last-resort one (#14992)
+- The last-resort run is tested end to end (#14993)
+- A script run takes away the temp file a killed save of `init`'s answers left (#15342)
+
 ## 0.3.52
 
 Full binary notes in
