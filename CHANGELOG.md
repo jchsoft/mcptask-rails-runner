@@ -9,6 +9,34 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.54
+
+Full binary notes in
+[mcptask-releases v0.3.54](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.54).
+
+**Upgrading takes two commands.** `mcptask_runner update --self` replaces the binary; then a bare `mcptask_runner update` in every project on the host, because the bundled `.claude/` assets changed (helpers/test_lock). Run it while no runner is working that checkout. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- Codex runs get the pre-tool gate: the plan watchdog, the progress gate and the self-kill rules (#15910)
+- OpenCode children get the pre-tool gate too, through a runner-supplied plugin (#15909)
+- A hand-off to a person is one plain action, in that person's language (#15929)
+- The plan watchdog: Claude Code children cannot work against a wrong TODO list (#15908)
+- The snapshot carries the run's phase (#15905)
+- A test lock held by another project is waited out by the runner, not by a paid child (#15870)
+- A second host refusal in one project is no longer hidden under the first (#15739)
+- A last_resort run cut short by the quota or the machine keeps the task's one escalation (#15769)
+- The child is told what to do with the new messages a tool response carries (#15845)
+- A message posted to the running task is kept on disk for its CLI (#15846)
+- Claude Code is handed a mid-run message at its next tool call (#15847)
+- A git read the host slept through is read again once, not reported (#15868)
+- The snapshot names the project by id (#15255)
+- An error verdict keeps the child's words, and a task that keeps coming back already_done waits for the task server (#15869)
+- A Cloudflare block page in front of authentication is waited out, not filed as a bug (#15871)
+- A long task no longer skips its CI gate after 70 minutes (#15872)
+
 ## 0.3.53
 
 Full binary notes in
