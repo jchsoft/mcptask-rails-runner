@@ -9,6 +9,28 @@ release notes for the same tag.
 
 Nothing yet.
 
+## 0.3.55
+
+Full binary notes in
+[mcptask-releases v0.3.55](https://github.com/jchsoft/mcptask-releases/releases/tag/v0.3.55).
+
+**Upgrading starts with one command.** `mcptask_runner update --self` replaces the binary. The bundled `.claude/` assets did not change, so nothing on that account asks for a bare `update` in the projects — the sections below say whether anything else does. A runner idling in a wait keeps the old binary until its next task or a restart (`launchctl kill SIGTERM`, wait for the job to stop, then `kickstart` on macOS), so restart it.
+
+No wrapper changes.
+
+Binary changes carried by this version:
+
+- A held shared test lock no longer files a bug piece (#15996)
+- Reports for people are short and in the user's language, not only hand-offs (#16017)
+- The self-kill rules no longer refuse kills of what only shares the runner's name (#15937)
+- A red bin/ci the change did not cause no longer loops the task (#16016)
+- A progress log that fails is retried after a wait, not turned into an error at once (#15956)
+- A stalled, overflowed or MCP-blocked run no longer leaves the test lock held (#15957)
+- An account with no credit is waited out on the card, not filed as a bug (#15974)
+- The card always shows the step in progress: the anchor asks for it and the plan watchdog enforces it (#15997)
+- A Codex project whose `.codex/config.toml` does not declare mcptask-online is refused at start (#15998)
+- A skill's body no longer appears on the card as the child's words (#16015)
+
 ## 0.3.54
 
 Full binary notes in
